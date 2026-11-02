@@ -44,6 +44,30 @@ The project notes currently describe the following planned stack:
 
 These are planned technologies, not a claim that every feature has already been implemented. See [Frontend technology stack](docs/tech-stack/frontend.md) and [Backend technology stack](docs/tech-stack/backend.md) for the comparison and rationale.
 
+## Repository structure
+
+```text
+.
+├── .github/    GitHub configuration: workflows and agent skills
+├── docs/       project documentation
+├── frontend/   React + Vite PWA
+├── backend/    FastAPI service
+├── prompts/    AI prompts and output schemas
+├── tests/      automated tests
+└── README.md
+```
+
+| Folder | Purpose |
+| :--- | :--- |
+| [`.github/`](.github/) | GitHub Actions workflows (CI/CD) and agent skills. |
+| [`docs/`](docs/) | Project documentation: architecture, product catalog, and technology stack decisions. |
+| [`frontend/`](frontend/) | The React + Vite PWA client. |
+| [`backend/`](backend/) | The FastAPI service: API, document processing (PDF text, OCR), AI integration, background jobs, and reminders. |
+| [`prompts/`](prompts/) | Prompts and output schemas for the AI integration. |
+| [`tests/`](tests/) | Automated tests (backend, frontend, end-to-end), using mocks instead of real AI calls. |
+
+Each folder holds a short README so that it is visible on GitHub. Inside `frontend/` and `backend/`, the team chooses the internal layout when implementation starts.
+
 ## Privacy and safety principles
 
 - Process document originals and images temporarily; do not retain them as a permanent document archive.
@@ -60,7 +84,7 @@ The interface should support adjustable text, strong contrast, clear focus indic
 
 ## Repository status
 
-This repository is at an early documentation stage. Implementation details, supported languages and file formats, deployment instructions, and automated tests will be documented as they are established.
+This repository is at an early stage. The folder structure is agreed (see [Repository structure](#repository-structure)), but there is no application code yet. Implementation details, supported languages and file formats, deployment instructions, and automated tests will be documented as they are established.
 
 ## Product scope
 
