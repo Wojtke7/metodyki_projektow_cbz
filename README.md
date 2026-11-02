@@ -44,6 +44,36 @@ The project notes currently describe the following planned stack:
 
 These are planned technologies, not a claim that every feature has already been implemented. See [Frontend technology stack](docs/tech-stack/frontend.md) and [Backend technology stack](docs/tech-stack/backend.md) for the comparison and rationale.
 
+## Repository structure
+
+```text
+.
+├── .github/    GitHub configuration: workflows and agent skills
+├── docs/       project documentation
+├── frontend/   React + Vite PWA
+├── backend/    FastAPI service
+├── prompts/    AI prompts and output schemas
+├── tests/      automated tests
+├── .env.example      template for local configuration (copy to .env, never commit .env)
+├── .gitignore        files Git must not track
+├── .dockerignore     files excluded from Docker builds
+├── .gitattributes    line-ending normalisation
+├── .editorconfig     shared editor settings
+├── CONTRIBUTING.md   how we work: pull requests and Trello flow
+└── README.md
+```
+
+| Folder | Purpose |
+| :--- | :--- |
+| [`.github/`](.github/) | GitHub Actions workflows (CI/CD) and agent skills. |
+| [`docs/`](docs/) | Project documentation: architecture, product catalog, and technology stack decisions. |
+| [`frontend/`](frontend/) | The React + Vite PWA client. |
+| [`backend/`](backend/) | The FastAPI service: API, document processing (PDF text, OCR), AI integration, background jobs, and reminders. |
+| [`prompts/`](prompts/) | Prompts and output schemas for the AI integration. |
+| [`tests/`](tests/) | Automated tests (backend, frontend, end-to-end), using mocks instead of real AI calls. |
+
+Each folder holds a short README so that it is visible on GitHub. Inside `frontend/` and `backend/`, the team chooses the internal layout when implementation starts.
+
 ## Privacy and safety principles
 
 - Process document originals and images temporarily; do not retain them as a permanent document archive.
@@ -60,7 +90,7 @@ The interface should support adjustable text, strong contrast, clear focus indic
 
 ## Repository status
 
-This repository is at an early documentation stage. Implementation details, supported languages and file formats, deployment instructions, and automated tests will be documented as they are established.
+This repository is at an early stage. The folder structure is agreed (see [Repository structure](#repository-structure)), but there is no application code yet. Implementation details, supported languages and file formats, deployment instructions, and automated tests will be documented as they are established.
 
 ## Product scope
 
@@ -76,6 +106,7 @@ The [product catalog](docs/project-catalog/) lists all planned features with MoS
 - [Frontend technology stack](docs/tech-stack/frontend.md) — options considered, evaluation criteria, and the proposed frontend selection (Sprint 1).
 - [Backend technology stack](docs/tech-stack/backend.md) — options considered, evaluation criteria, and the proposed backend selection (Sprint 1).
 - [CI/CD technology stack](docs/tech-stack/ci-cd.md) — pipeline options considered, the proposed choice, and the proposed pipeline (Sprint 1).
-- [AI](docs/tech-stack/ai.md) — options considered evaluation criteria, and the proposed ai selection (Sprint 1).
+- [AI technology stack](docs/tech-stack/ai.md) — options considered, evaluation criteria, and the proposed AI selection (Sprint 1).
 - [Product catalog and priorities](docs/project-catalog/product_catalog.xlsx) — all planned features with MoSCoW priorities (Sprint 1).
 - [Feature ideas](docs/project-catalog/functions_ideas.pdf) — the raw idea list the catalog was built from (Sprint 1).
+- [Contributing guide](CONTRIBUTING.md) — pull request flow, Trello task flow, and repository rules.
