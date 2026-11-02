@@ -42,7 +42,7 @@ The project notes currently describe the following planned stack:
 - **Reminders:** APScheduler with PostgreSQL-backed reminder data.
 - **Accessibility:** Browser-native speech synthesis, responsive text sizing, keyboard support, and screen-reader-friendly UI components.
 
-These are planned technologies, not a claim that every feature has already been implemented. See [docs/backend-tech-stack.md](docs/tech-stack/backend.md) for the backend comparison and rationale.
+These are planned technologies, not a claim that every feature has already been implemented. See [Frontend technology stack](docs/tech-stack/frontend.md) and [Backend technology stack](docs/tech-stack/backend.md) for the comparison and rationale.
 
 ## Privacy and safety principles
 
@@ -73,6 +73,7 @@ The [product catalog](docs/project-catalog/) lists all planned features with MoS
   
 ## Documentation
 
+- [Frontend technology stack](docs/tech-stack/frontend.md) — options considered, evaluation criteria, and the proposed frontend selection (Sprint 1).
 - [Backend technology stack](docs/tech-stack/backend.md) — options considered, evaluation criteria, and the proposed backend selection (Sprint 1).
 - [CI/CD technology stack](docs/tech-stack/ci-cd.md) — pipeline options considered, the proposed choice, and the proposed pipeline (Sprint 1).
 - [Product catalog and priorities](docs/project-catalog/product_catalog.xlsx) — all planned features with MoSCoW priorities (Sprint 1).
