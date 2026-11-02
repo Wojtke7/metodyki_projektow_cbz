@@ -76,5 +76,6 @@ The [product catalog](docs/project-catalog/) lists all planned features with MoS
 - [Frontend technology stack](docs/tech-stack/frontend.md) — options considered, evaluation criteria, and the proposed frontend selection (Sprint 1).
 - [Backend technology stack](docs/tech-stack/backend.md) — options considered, evaluation criteria, and the proposed backend selection (Sprint 1).
 - [CI/CD technology stack](docs/tech-stack/ci-cd.md) — pipeline options considered, the proposed choice, and the proposed pipeline (Sprint 1).
+- [AI](docs/tech-stack/ai.md) — options considered evaluation criteria, and the proposed ai selection (Sprint 1).
 - [Product catalog and priorities](docs/project-catalog/product_catalog.xlsx) — all planned features with MoSCoW priorities (Sprint 1).
 - [Feature ideas](docs/project-catalog/functions_ideas.pdf) — the raw idea list the catalog was built from (Sprint 1).
