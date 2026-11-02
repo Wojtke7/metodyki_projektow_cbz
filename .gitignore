@@ -1,1 +1,44 @@
+# Editors and IDEs
 .vscode/
+.idea/
+*.swp
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Secrets and local configuration (keep the example file)
+.env
+.env.*
+!.env.example
+
+# Python (backend)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Node (frontend)
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+
+# Docker
+docker-compose.override.yml
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
+
+# Uploaded documents and OCR output must never be committed
+uploads/

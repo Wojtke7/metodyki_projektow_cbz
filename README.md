@@ -54,6 +54,11 @@ These are planned technologies, not a claim that every feature has already been 
 ├── backend/    FastAPI service
 ├── prompts/    AI prompts and output schemas
 ├── tests/      automated tests
+├── .env.example      template for local configuration (copy to .env, never commit .env)
+├── .gitignore        files Git must not track
+├── .dockerignore     files excluded from Docker builds
+├── .gitattributes    line-ending normalisation
+├── .editorconfig     shared editor settings
 └── README.md
 ```
 
