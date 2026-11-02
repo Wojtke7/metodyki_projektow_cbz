@@ -1,8 +1,8 @@
-# System Architecture Plan (US-03)
+# System Architecture Plan
 
 ## Overview
 
-This document defines the system architecture and data flow for **ProsteFakty** (`user → page → server → AI → result`). Every component in the diagram maps directly to the tools selected in **US-06**, showing where sensitive personal data (such as PESEL numbers) is masked and where external API keys are stored.
+This document defines the system architecture and data flow for **ProsteFakty** (`user → page → server → AI → result`). Every component in the diagram maps directly to the tools, showing where sensitive personal data (such as PESEL numbers) is masked and where external API keys are stored.
 
 ## Architecture & Data Flow Diagram
 
@@ -20,24 +20,24 @@ flowchart TB
     User(["👤 User<br/>(Browser / Assistive Tech)"]):::userNode
 
     %% 2. PAGE (FRONTEND)
-    subgraph Page ["1. Page (Frontend — Public Client, NO API Keys in Code)"]
-        PWA["🖥️ Web UI Input<br/>Tool (US-06): React + Vite PWA"]:::pageNode
-        ResultUI["📋 Explanation, Checklist & Deadlines (Result)<br/>Tool (US-06): React + Vite PWA + Browser Speech Synthesis (TTS)"]:::pageNode
+    subgraph Page ["1. Page (Frontend - Public Client, NO API Keys in Code)"]
+        PWA["🖥️ Web UI Input<br/>Tool: React + Vite PWA"]:::pageNode
+        ResultUI["📋 Explanation, Checklist & Deadlines (Result)<br/>Tool: React + Vite PWA + Browser Speech Synthesis (TTS)"]:::pageNode
     end
 
     %% 3. SERVER (BACKEND)
-    subgraph Server ["2. Server (Backend — Trusted Boundary over HTTPS)"]
-        API["⚙️ REST API & Upload Validation<br/>Tool (US-06): Python + FastAPI"]:::serverNode
-        Queue["📨 Background Job Queue & Worker<br/>Tool (US-06): Celery + Redis"]:::serverNode
-        Extraction["📄 Document Text Extraction & OCR<br/>Tool (US-06): PyMuPDF + OpenCV + Pillow + PaddleOCR"]:::serverNode
-        Masking["🛡️ Sensitive Data (PII) Masking<br/>Masks PESEL, nip, addresses before AI call<br/>Tool (US-06): Python PII Sanitizer (Regex / Presidio)"]:::secNode
-        EnvSecrets[("🔑 Server Secret Store (API Key)<br/>Stored ONLY on server, never in Page or Git<br/>Tool (US-06): Server Environment File (.env)")]:::secNode
-        DB[("🗄️ Persistent App & Reminder Storage<br/>No original documents stored<br/>Tool (US-06): PostgreSQL + SQLAlchemy + APScheduler")]:::dbNode
+    subgraph Server ["2. Server (Backend - Trusted Boundary over HTTPS)"]
+        API["⚙️ REST API & Upload Validation<br/>Tool: Python + FastAPI"]:::serverNode
+        Queue["📨 Background Job Queue & Worker<br/>Tool: Celery + Redis"]:::serverNode
+        Extraction["📄 Document Text Extraction & OCR<br/>Tool: PyMuPDF + OpenCV + Pillow + PaddleOCR"]:::serverNode
+        Masking["🛡️ Sensitive Data (PII) Masking<br/>Masks PESEL, nip, addresses before AI call<br/>Tool: Python PII Sanitizer (Regex / Presidio)"]:::secNode
+        EnvSecrets[("🔑 Server Secret Store (API Key)<br/>Stored ONLY on server, never in Page or Git<br/>Tool: Server Environment File (.env)")]:::secNode
+        DB[("🗄️ Persistent App & Reminder Storage<br/>No original documents stored<br/>Tool: PostgreSQL + SQLAlchemy + APScheduler")]:::dbNode
     end
 
     %% 4. AI (EXTERNAL PROVIDER)
     subgraph ExternalAI ["3. AI Service (External Boundary)"]
-        AI["🤖 External LLM Service<br/>Receives ONLY masked text<br/>Tool (US-06): External AI Provider REST API"]:::aiNode
+        AI["🤖 External LLM Service<br/>Receives ONLY masked text<br/>Tool: External AI Provider REST API"]:::aiNode
     end
 
     %% FLOW CONNECTIONS
