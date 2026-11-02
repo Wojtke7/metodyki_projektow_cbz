@@ -65,3 +65,4 @@ This repository is at an early documentation stage. Implementation details, supp
 ## Documentation
 
 - [Backend technology stack](docs/tech-stack/backend.md) — options considered, evaluation criteria, and the proposed backend selection.
+- [CI/CD technology stack](docs/tech-stack/ci-cd.md) — pipeline options considered, the proposed choice, and the proposed pipeline.
