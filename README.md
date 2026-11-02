@@ -62,7 +62,18 @@ The interface should support adjustable text, strong contrast, clear focus indic
 
 This repository is at an early documentation stage. Implementation details, supported languages and file formats, deployment instructions, and automated tests will be documented as they are established.
 
+## Product scope
+
+The [product catalog](docs/project-catalog/) lists all planned features with MoSCoW priorities. The first version (MVP) is built from the **Must** features. **Should** and **Could** features are added if time allows. **Won't** features are out of scope on purpose.
+
+- **Must (MVP):** paste letter text, plain-language explanation, action plan (what to do, by when, how much to pay), key facts box, loading and error messages, phone and desktop layout, a rule that the app says "not in the letter" instead of guessing.
+- **Should:** sensitive data masking (PESEL, ID numbers), consequences of not acting (only if the letter states them), large font mode, read aloud.
+- **Could:** high contrast mode, photo or scan upload (OCR), calendar reminder.
+- **Won't:** user accounts and history, legal advice, storing letter content.
+  
 ## Documentation
 
-- [Backend technology stack](docs/tech-stack/backend.md) — options considered, evaluation criteria, and the proposed backend selection.
-- [CI/CD technology stack](docs/tech-stack/ci-cd.md) — pipeline options considered, the proposed choice, and the proposed pipeline.
+- [Backend technology stack](docs/tech-stack/backend.md) — options considered, evaluation criteria, and the proposed backend selection (Sprint 1).
+- [CI/CD technology stack](docs/tech-stack/ci-cd.md) — pipeline options considered, the proposed choice, and the proposed pipeline (Sprint 1).
+- [Product catalog and priorities](docs/project-catalog/product_catalog.xlsx) — all planned features with MoSCoW priorities (Sprint 1).
+- [Feature ideas](docs/project-catalog/functions_ideas.pdf) — the raw idea list the catalog was built from (Sprint 1).
