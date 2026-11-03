@@ -30,7 +30,7 @@ The options below are compared on cost, rate limits, ease of use, and suitabilit
 ### Self-hosted Open-Source LLM (Ollama + SpeakLeash Bielik / Llama 3)
 
 - **Cost:** Free software license ($0 API cost), but high infrastructure cost. Running a 7B–11B parameter model with acceptable latency requires a dedicated GPU instance.
-- **Rate limits & quota:** Limited by server hardware capacity. On a standard CPU-only EC2 instance (as planned in `ci-cd.md`), inference takes several minutes per document and risks exhausting system RAM alongside FastAPI, Celery, Redis, and PaddleOCR.
+- **Rate limits & quota:** Limited by server hardware capacity. On a standard CPU-only Azure virtual machine (as planned in `ci-cd.md`), inference takes several minutes per document and risks exhausting system RAM alongside FastAPI, Celery, Redis, and PaddleOCR.
 - **Ease of use:** Low to medium. Requires managing model weights, container GPU passthrough, and high memory consumption on the deployment server.
 
 ## Cost notes
@@ -43,7 +43,7 @@ While commercial APIs (OpenAI, Anthropic) charge per token from the first reques
 
 - **Zero cost with no credit card:** Eliminates billing risk while providing generous daily request quotas (up to 1,500 RPD) and a 1M-token context window capable of handling long Polish administrative letters.
 - **Native Structured Outputs:** Supports passing a Pydantic schema directly from FastAPI to guarantee the response always contains valid JSON fields (`explanation`, `source_passages`, `action_checklist`, and `deadlines`).
-- **Low latency on CPU servers:** Because inference runs on Google's infrastructure, our EC2 server only handles lightweight HTTP requests, keeping hosting requirements minimal.
+- **Low latency on CPU servers:** Because inference runs on Google's infrastructure, our Azure VM only handles lightweight HTTP requests, keeping hosting requirements minimal.
 - **Fallback flexibility:** If rate limits (`429 RESOURCE_EXHAUSTED`) are reached during heavy testing, the backend can automatically fall back to `gemini-3.5-flash-lite` (which has a separate quota bucket) or queue retries via Celery with exponential backoff.
 
 ## Proposed AI integration architecture
