@@ -50,6 +50,20 @@ GitHub Actions is recommended for the initial version.
 
 GitLab CI remains a reasonable alternative if the project later moves to GitLab. Jenkins is not recommended for a small team without a strong reason to self-host.
 
+## Deployment target: Azure virtual machine
+
+The team runs the application on a virtual machine (VM) in Microsoft Azure. The deploy stage of the pipeline therefore targets this VM, and the choice of GitHub Actions does not depend on where the VM runs.
+
+A GitHub-hosted runner has to reach the VM to deploy. The options are:
+
+- **SSH from GitHub Actions:** The simplest option, and the one assumed in the pipeline below. It needs SSH (port 22) open in the VM's Azure network security group. Restrict it as far as possible, and use a dedicated deployment key with limited permissions.
+- **Self-hosted runner on the VM:** The VM pulls jobs from GitHub, so no inbound SSH port has to be open. The team then has to maintain and update the runner.
+- **Azure login from GitHub Actions:** The workflow signs in to Azure with OpenID Connect (no long-lived secret stored in GitHub) and runs the deployment through the Azure CLI on the VM. It needs an Azure app registration and role assignment.
+
+The first version should use SSH with a restricted deployment key. Revisit the other two options if opening SSH to GitHub proves a problem. Details such as VM size, region, and operating system belong in the infrastructure documentation, not in this decision record.
+
+Azure costs (the VM, its disk, public IP, and outbound traffic) are the main running cost and are separate from the CI/CD tool. Stop or deallocate the VM when it is not needed if the budget requires it.
+
 ## Proposed pipeline
 
 ```mermaid
@@ -69,7 +83,7 @@ flowchart LR
     ci -->|checks pass + review| merge[Merge to main]
 
     merge --> approval{{Manual approval<br/>optional}}
-    approval --> deploy[Deploy<br/>SSH + deploy.sh]
+    approval --> deploy[Deploy to Azure VM<br/>SSH + deploy.sh]
     deploy --> health{Health check<br/>/api/ping}
     health -->|ok| done([Live])
     health -->|fails| rollback[Roll back<br/>revert on main + redeploy]
@@ -83,7 +97,7 @@ flowchart LR
 | Backend CI | Pull request, push to `main` | Install dependencies, run a linter (e.g. Ruff) and `pytest` on the supported Python version. | Catch broken changes before merge. |
 | Backend image check | Pull request, push to `main` | Build the Docker image and validate the Compose configuration. | Catch deployment configuration errors early. |
 | Frontend CI | Pull request, push to `main` | `npm ci`, lint, type-check, and build the React/Vite PWA. | Catch type and build errors. |
-| Backend deploy | Push to `main` after CI passes | Connect to the server, run the deployment script, then call a health endpoint. | Repeatable deployment with a basic smoke test. |
+| Backend deploy | Push to `main` after CI passes | Connect to the Azure VM, run the deployment script, then call a health endpoint. | Repeatable deployment with a basic smoke test. |
 | Dependency updates | Scheduled | Dependabot proposes updates for pip, npm, Docker images, and GitHub Actions. | Keep dependencies and base images current. |
 
 Notes:
@@ -95,13 +109,13 @@ Notes:
 
 ## Prototype reference
 
-The prototype in the [`ProsteFakty/backend`](https://github.com/ProsteFakty/backend) repository (FastAPI, PostgreSQL, Qdrant, Caddy, Docker Compose) is deployed to a single EC2 server by running `deploy.sh` manually. The script pulls the code and restarts or rebuilds only the parts that changed. The proposed deploy stage would call this same script from GitHub Actions over SSH, so the rebuild logic stays in one place. This prototype does not yet match the stack in [backend.md](backend.md) (for example, it has no Celery or Redis), so the pipeline should be updated when the final stack is confirmed.
+The prototype in the [`ProsteFakty/backend`](https://github.com/ProsteFakty/backend) repository (FastAPI, PostgreSQL, Qdrant, Caddy, Docker Compose) is deployed to a single server by running `deploy.sh` manually. The script pulls the code and restarts or rebuilds only the parts that changed. The proposed deploy stage would call this same script from GitHub Actions over SSH on the Azure VM, so the rebuild logic stays in one place. The script itself does not depend on a cloud provider, but the prototype's database backup script (`db/dump.sh`) uploads to Amazon S3 and would need an Azure equivalent, for example Azure Blob Storage. This prototype also does not yet match the stack in [backend.md](backend.md) (for example, it has no Celery or Redis), so the pipeline should be updated when the final stack is confirmed.
 
 ## Secrets and configuration
 
 | Secret or variable | Where it lives | Purpose |
 |---|---|---|
-| Server address and SSH user | GitHub Secrets | Reach the deployment server. |
+| Azure VM address and SSH user | GitHub Secrets | Reach the Azure VM. |
 | Deployment SSH key | GitHub Secrets | Used only for deployment, with limited permissions. |
 | Application domain | GitHub Variables | Health check after deployment. |
 | Database credentials, AI provider keys | Environment file on the server | Not stored in GitHub Actions, so CI cannot read them. |
