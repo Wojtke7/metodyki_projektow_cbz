@@ -1,30 +1,30 @@
-import { FileText } from "lucide-react"
+import { FileText } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const sections = [
   {
     id: "documents",
     label: "Dokumenty",
-    marker: <FileText className="size-6" />
+    marker: <FileText className="size-5 lg:size-6" />,
   },
   { id: "section-2", label: "Sekcja 2", marker: "2" },
-  { id: "section-3", label: "Sekcja 3", marker: "3" }
-] as const
+  { id: "section-3", label: "Sekcja 3", marker: "3" },
+] as const;
 
-export type MainSection = (typeof sections)[number]["id"]
+export type MainSection = (typeof sections)[number]["id"];
 
 type MainNavProps = {
-  activeSection: MainSection
-  onSectionChange: (section: MainSection) => void
-}
+  activeSection: MainSection;
+  onSectionChange: (section: MainSection) => void;
+};
 
 export function MainNav({ activeSection, onSectionChange }: MainNavProps) {
   return (
     <nav
       aria-label="Nawigacja główna"
-      className="flex w-[72px] shrink-0 flex-col gap-2 self-center rounded-full border bg-card p-[7px] sm:w-[88px]"
+      className="order-last mx-3 flex shrink-0 flex-row gap-1 rounded-full border bg-card p-1.5 lg:order-none lg:mx-0 lg:w-[88px] lg:flex-col lg:gap-2 lg:self-center lg:p-[7px]"
     >
       {sections.map((section) => (
         <Button
@@ -35,14 +35,14 @@ export function MainNav({ activeSection, onSectionChange }: MainNavProps) {
           aria-controls="main-content"
           onClick={() => onSectionChange(section.id)}
           className={cn(
-            "h-[86px] w-full flex-col gap-2 rounded-full px-0 py-3 text-[9px] text-muted-foreground sm:text-[10px]",
+            "h-16 min-w-0 flex-1 flex-col gap-1 rounded-full px-1 py-2 text-[11px] text-muted-foreground lg:h-[86px] lg:w-full lg:flex-none lg:gap-2 lg:px-0 lg:py-3 lg:text-[10px]",
             activeSection === section.id &&
-              "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+              "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground",
           )}
         >
           <span
             aria-hidden="true"
-            className="flex h-6 items-center text-lg font-bold"
+            className="flex h-5 items-center text-base font-bold lg:h-6 lg:text-lg"
           >
             {section.marker}
           </span>
@@ -50,5 +50,5 @@ export function MainNav({ activeSection, onSectionChange }: MainNavProps) {
         </Button>
       ))}
     </nav>
-  )
+  );
 }

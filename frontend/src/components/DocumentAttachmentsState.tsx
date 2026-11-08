@@ -1,24 +1,38 @@
 import { Plus } from "lucide-react";
+import { lazy, Suspense } from "react";
 
 import { DocumentCard } from "@/components/DocumentCard";
+import { DocumentExplainedState } from "@/components/DocumentExplainedState";
 import { DocumentExplanationReadyState } from "@/components/DocumentExplanationReadyState";
 import { DocumentUploadInfo } from "@/components/DocumentUploadInfo";
 import { Button } from "@/components/ui/button";
+
+const DocumentExplanationLoadingState = lazy(() =>
+  import("@/components/DocumentExplanationLoadingState").then((module) => ({
+    default: module.DocumentExplanationLoadingState,
+  })),
+);
+
+export type DocumentExplanationStatus = "ready" | "loading" | "explained";
 
 type DocumentAttachmentsStateProps = {
   documents: File[];
   onAddDocuments: () => void;
   errors: string[];
+  explanationStatus: DocumentExplanationStatus;
+  onExplainDocuments: () => void;
 };
 
 export function DocumentAttachmentsState({
   documents,
   onAddDocuments,
   errors,
+  explanationStatus,
+  onExplainDocuments,
 }: DocumentAttachmentsStateProps) {
   return (
-    <div className="flex min-h-0 w-full min-w-0 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
-      <div className="flex min-h-[480px] min-w-0 flex-1 flex-col p-[16px] sm:p-[24px] lg:min-h-0 lg:w-[456px] lg:flex-none lg:border-r">
+    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden lg:flex-row">
+      <div className="hidden min-h-0 min-w-0 flex-col p-[16px] sm:p-[24px] lg:flex lg:min-h-0 lg:w-[456px] lg:flex-none lg:border-r">
         <div className="mb-[16px] flex shrink-0 items-center justify-between gap-3">
           <h2 id="main-content-title" className="text-[20px]">
             Dokumenty
@@ -48,16 +62,43 @@ export function DocumentAttachmentsState({
             </li>
           ))}
         </ul>
-        <div className="shrink-0 pt-[24px]">
-          <Button
-            type="button"
-            className="h-[48px] w-full rounded-[12px] text-[16px] font-bold"
-          >
-            Wyjaśnij dokumenty
-          </Button>
-        </div>
+        {explanationStatus !== "explained" && (
+          <div className="shrink-0 pt-[24px]">
+            <Button
+              type="button"
+              onClick={onExplainDocuments}
+              disabled={explanationStatus === "loading"}
+              className="h-[48px] w-full rounded-[12px] text-[16px] font-bold"
+            >
+              {explanationStatus === "loading"
+                ? "Wyjaśniam dokumenty…"
+                : "Wyjaśnij dokumenty"}
+            </Button>
+          </div>
+        )}
       </div>
-      <DocumentExplanationReadyState />
+      {explanationStatus === "ready" && (
+        <DocumentExplanationReadyState
+          onExplainDocuments={onExplainDocuments}
+        />
+      )}
+      {explanationStatus === "loading" && (
+        <Suspense
+          fallback={
+            <div
+              role="status"
+              className="flex min-h-0 flex-1 items-center justify-center p-6"
+            >
+              Wyjaśniam dokumenty…
+            </div>
+          }
+        >
+          <DocumentExplanationLoadingState />
+        </Suspense>
+      )}
+      {explanationStatus === "explained" && (
+        <DocumentExplainedState documents={documents} />
+      )}
     </div>
   );
 }

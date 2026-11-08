@@ -1,13 +1,23 @@
 import { DOCUMENT_EXTENSIONS, MAX_DOCUMENT_SIZE_MB } from "@/lib/documents";
 
-export function DocumentUploadInfo({ errors }: { errors: string[] }) {
+export function DocumentUploadInfo({
+  errors,
+  showRequirements = true,
+}: {
+  errors: string[];
+  showRequirements?: boolean;
+}) {
+  if (!showRequirements && errors.length === 0) return null;
+
   return (
     <div className="min-w-0 text-[13px] leading-relaxed text-muted-foreground">
-      <p id="document-upload-requirements">
-        Dozwolone formaty: {DOCUMENT_EXTENSIONS.join(", ").toUpperCase()}
-        <br />
-        Maksymalny rozmiar pliku: {MAX_DOCUMENT_SIZE_MB} MB
-      </p>
+      {showRequirements && (
+        <p aria-hidden="true">
+          Dozwolone formaty: {DOCUMENT_EXTENSIONS.join(", ").toUpperCase()}
+          <br />
+          Maksymalny rozmiar pliku: {MAX_DOCUMENT_SIZE_MB} MB
+        </p>
+      )}
       {errors.length > 0 && (
         <ul
           role="alert"

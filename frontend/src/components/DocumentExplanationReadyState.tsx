@@ -5,8 +5,13 @@ import {
   AnimatedExplanationIcon,
   type ExplanationIconName,
 } from "@/components/AnimatedExplanationIcon";
+import { Button } from "@/components/ui/button";
 
 import styles from "./DocumentExplanationReadyState.module.css";
+
+type DocumentExplanationReadyStateProps = {
+  onExplainDocuments?: () => void;
+};
 
 const explanationDetails = [
   {
@@ -29,7 +34,9 @@ const explanationDetails = [
   },
 ] as const;
 
-export function DocumentExplanationReadyState() {
+export function DocumentExplanationReadyState({
+  onExplainDocuments,
+}: DocumentExplanationReadyStateProps) {
   const [hoveredIcon, setHoveredIcon] = useState<ExplanationIconName | null>(
     null,
   );
@@ -40,7 +47,7 @@ export function DocumentExplanationReadyState() {
   return (
     <section
       aria-labelledby="document-explanation-title"
-      className="@container flex shrink-0 flex-col items-center border-t px-[16px] py-[32px] sm:px-[24px] lg:min-w-0 lg:flex-1 lg:overflow-y-auto lg:border-t-0 lg:p-[32px]"
+      className="@container flex min-h-0 w-full flex-1 flex-col items-center overflow-y-auto px-[16px] py-[32px] sm:px-[24px] lg:min-w-0 lg:p-[32px]"
     >
       <div className="my-auto w-full max-w-[760px] shrink-0 text-center">
         <MessagesSquare
@@ -128,6 +135,15 @@ export function DocumentExplanationReadyState() {
             </li>
           ))}
         </ul>
+        {onExplainDocuments && (
+          <Button
+            type="button"
+            onClick={onExplainDocuments}
+            className="mt-8 h-12 w-full max-w-[360px] rounded-[12px] text-[16px] font-bold lg:hidden"
+          >
+            Wyjaśnij dokumenty
+          </Button>
+        )}
       </div>
     </section>
   );
