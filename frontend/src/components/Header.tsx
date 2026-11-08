@@ -13,7 +13,7 @@ export function Header({
   onOpenDocuments,
 }: HeaderProps) {
   return (
-    <header className="shrink-0 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-4 sm:px-5 lg:pt-6 lg:pr-8 lg:pb-6 lg:pl-[calc(3.5rem+88px)]">
+    <header className="shrink-0 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-4 sm:px-5 lg:pt-0 lg:pr-8 lg:pb-6 lg:pl-0">
       <div className=" flex min-h-16 items-center justify-between gap-2 rounded-[24px] px-[12px] py-2.5 sm:px-6 lg:min-h-[80px]">
         <div className="flex min-w-0 items-center gap-2">
           {onOpenDocuments && (

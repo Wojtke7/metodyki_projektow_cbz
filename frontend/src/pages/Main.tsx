@@ -24,6 +24,7 @@ export function Main() {
     useState<DocumentExplanationStatus>("ready");
   const explanationTimerRef = useRef<number | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [navExpanded, setNavExpanded] = useState(true);
   const isUploadState = activeSection === "documents" && documents.length === 0;
   const showDocumentDrawerButton =
     activeSection === "documents" && documents.length > 0;
@@ -76,77 +77,83 @@ export function Main() {
       />
       <div
         inert={documentsOpen || undefined}
-        className="mx-auto flex h-dvh max-w-[1720px] flex-col overflow-hidden lg:h-svh lg:min-h-[600px] lg:overflow-visible"
+        className="flex h-dvh flex-col gap-3 overflow-hidden lg:flex-row lg:gap-6 lg:py-6 lg:pl-3"
       >
-        <Header
-          documentsOpen={documentsOpen}
-          onOpenDocuments={
-            showDocumentDrawerButton ? () => setDocumentsOpen(true) : undefined
-          }
+        <MainNav
+          activeSection={activeSection}
+          expanded={navExpanded}
+          onExpandedChange={setNavExpanded}
+          onSectionChange={(section) => {
+            setActiveSection(section);
+            if (section !== "documents") setDocumentsOpen(false);
+          }}
         />
-        <main className="flex min-h-0 flex-1 flex-col gap-3 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-5 lg:grid lg:grid-cols-[88px_minmax(0,1fr)] lg:gap-6 lg:px-8 lg:pb-6">
-          <MainNav
-            activeSection={activeSection}
-            onSectionChange={(section) => {
-              setActiveSection(section);
-              if (section !== "documents") setDocumentsOpen(false);
-            }}
-          />
-          <section
-            id="main-content"
-            aria-labelledby={
-              activeSection === "documents" && documents.length > 0
-                ? undefined
-                : "main-content-title"
-            }
-            aria-label={
-              activeSection === "documents" && documents.length > 0
-                ? "Dokumenty"
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <Header
+            documentsOpen={documentsOpen}
+            onOpenDocuments={
+              showDocumentDrawerButton
+                ? () => setDocumentsOpen(true)
                 : undefined
             }
-            onDragOver={(event) => {
-              if (activeSection === "documents") {
-                event.preventDefault();
-                event.dataTransfer.dropEffect = "copy";
+          />
+          <main className="flex min-h-0 flex-1 flex-col gap-3 px-3 sm:px-5 lg:px-0 lg:pr-8 lg:pb-0">
+            <section
+              id="main-content"
+              aria-labelledby={
+                activeSection === "documents" && documents.length > 0
+                  ? undefined
+                  : "main-content-title"
               }
-            }}
-            onDrop={(event) => {
-              if (activeSection === "documents") {
-                event.preventDefault();
-                addDocuments(Array.from(event.dataTransfer.files));
+              aria-label={
+                activeSection === "documents" && documents.length > 0
+                  ? "Dokumenty"
+                  : undefined
               }
-            }}
-            className={cn(
-              "order-first flex min-h-0 min-w-0 flex-col lg:order-none",
-              isUploadState
-                ? "reading-surface my-auto max-h-full flex-initial items-center overflow-y-auto rounded-[24px] px-5 py-8 sm:px-10 sm:py-12 lg:my-0 lg:w-full lg:max-w-[720px] lg:self-center lg:justify-self-center lg:py-14"
-                : "flex-1 lg:min-h-[480px]",
-              activeSection !== "documents" &&
-                "reading-surface items-center justify-center rounded-[24px] px-4 py-10",
-            )}
-          >
-            {activeSection === "documents" ? (
-              documents.length > 0 ? (
-                <DocumentAttachmentsState
-                  documents={documents}
-                  onAddDocuments={() => fileInputRef.current?.click()}
-                  errors={uploadErrors}
-                  explanationStatus={explanationStatus}
-                  onExplainDocuments={explainDocuments}
-                />
+              onDragOver={(event) => {
+                if (activeSection === "documents") {
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "copy";
+                }
+              }}
+              onDrop={(event) => {
+                if (activeSection === "documents") {
+                  event.preventDefault();
+                  addDocuments(Array.from(event.dataTransfer.files));
+                }
+              }}
+              className={cn(
+                "order-first flex min-h-0 min-w-0 flex-col lg:order-none",
+                isUploadState
+                  ? "reading-surface my-auto max-h-full w-full max-w-[720px] flex-initial items-center self-center overflow-y-auto rounded-[24px] px-5 py-8 sm:px-10 sm:py-12 lg:py-14"
+                  : "flex-1",
+                activeSection !== "documents" &&
+                  "reading-surface items-center justify-center rounded-[24px] px-4 py-10",
+              )}
+            >
+              {activeSection === "documents" ? (
+                documents.length > 0 ? (
+                  <DocumentAttachmentsState
+                    documents={documents}
+                    onAddDocuments={() => fileInputRef.current?.click()}
+                    errors={uploadErrors}
+                    explanationStatus={explanationStatus}
+                    onExplainDocuments={explainDocuments}
+                  />
+                ) : (
+                  <DocumentUploadState
+                    onAddDocuments={() => fileInputRef.current?.click()}
+                    errors={uploadErrors}
+                  />
+                )
               ) : (
-                <DocumentUploadState
-                  onAddDocuments={() => fileInputRef.current?.click()}
-                  errors={uploadErrors}
-                />
-              )
-            ) : (
-              <h2 id="main-content-title" className="text-lg lg:text-[22px]">
-                {activeSection === "section-2" ? "Sekcja 2" : "Sekcja 3"}
-              </h2>
-            )}
-          </section>
-        </main>
+                <h2 id="main-content-title" className="text-lg lg:text-[22px]">
+                  {activeSection === "section-2" ? "Sekcja 2" : "Sekcja 3"}
+                </h2>
+              )}
+            </section>
+          </main>
+        </div>
       </div>
       <DocumentDrawer
         open={documentsOpen}

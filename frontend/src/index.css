@@ -181,12 +181,6 @@
     box-shadow: var(--shadow-panel);
   }
 
-  .document-card {
-    border: 1px solid var(--border);
-    background: var(--card);
-    box-shadow: 0 3px 9px -5px #264e7c33;
-  }
-
   .document-paper {
     border: 1px solid var(--border);
     background: var(--paper);
@@ -216,10 +210,45 @@
     box-shadow: none;
   }
 
+  .styled-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--input) 65%, transparent)
+      transparent;
+  }
+
+  .styled-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .styled-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .styled-scrollbar::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--input) 65%, transparent);
+    background-clip: padding-box;
+  }
+
+  .styled-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--input);
+  }
+
+  .chat-composer-overlay::before {
+    position: absolute;
+    inset: 0 8px 0 0;
+    content: "";
+    background: linear-gradient(to bottom, transparent, var(--card) 65%);
+  }
+
   .chat-composer {
     border: 1px solid var(--input);
     background: var(--control-fill);
-    box-shadow: var(--shadow-control);
+    box-shadow:
+      var(--shadow-control),
+      0 8px 24px -8px #0003;
   }
 
   .upload-errors {
@@ -250,6 +279,10 @@
 }
 
 @media (prefers-reduced-transparency: reduce) {
+  .chat-composer-overlay::before {
+    background: linear-gradient(to bottom, transparent, var(--card) 40%);
+  }
+
   .glass-surface {
     background: var(--glass-solid);
     -webkit-backdrop-filter: none;
@@ -269,6 +302,10 @@
 }
 
 @media (prefers-contrast: more) {
+  .chat-composer-overlay::before {
+    background: var(--card);
+  }
+
   :root {
     --border: #66778f;
     --control-edge: #66778f;

@@ -104,7 +104,7 @@ export function DocumentDrawer({
         )}
         <ul
           aria-label="Dodane dokumenty"
-          className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4"
+          className="styled-scrollbar flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4"
         >
           {documents.map((file, index) => (
             <li key={index} className="min-w-0">

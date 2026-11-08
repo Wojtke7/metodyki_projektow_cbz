@@ -37,7 +37,7 @@ export function DocumentAttachmentsState({
           <DocumentUploadInfo errors={errors} showRequirements={false} />
         </div>
       )}
-      <div className="glass-surface hidden min-h-0 min-w-0 flex-col rounded-[24px] p-5 lg:flex lg:w-[456px] lg:flex-none">
+      <div className="glass-surface hidden min-h-0 min-w-0 flex-col rounded-[24px] p-5 lg:flex lg:w-2/5 lg:max-w-[456px] lg:flex-none">
         <div className="mb-[16px] flex shrink-0 items-center justify-between gap-3">
           <h2 id="main-content-title" className="text-[20px]">
             Dokumenty
@@ -59,7 +59,7 @@ export function DocumentAttachmentsState({
         </div>
         <ul
           aria-label="Dodane dokumenty"
-          className="grid min-h-0 flex-1 grid-cols-[repeat(auto-fill,minmax(min(100%,172px),1fr))] content-start gap-4 overflow-y-auto p-0.5"
+          className="styled-scrollbar -mr-5 grid min-h-0 flex-1 grid-cols-[repeat(auto-fill,minmax(min(100%,172px),1fr))] content-start gap-4 overflow-y-auto py-0.5 pr-5 pl-0.5"
         >
           {documents.map((file, index) => (
             <li key={index} className="min-w-0">
