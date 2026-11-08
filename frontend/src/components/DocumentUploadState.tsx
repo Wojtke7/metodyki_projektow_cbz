@@ -13,12 +13,14 @@ export function DocumentUploadState({
   errors,
 }: DocumentUploadStateProps) {
   return (
-    <div className="flex w-full flex-col items-center gap-[20px] text-center">
-      <FileUp aria-hidden="true" className="size-[64px] text-primary" />
+    <div className="my-auto flex w-full shrink-0 flex-col items-center gap-5 text-center">
+      <div className="button-raised flex size-24 items-center justify-center rounded-[28px] border text-primary">
+        <FileUp aria-hidden="true" className="size-12" />
+      </div>
       <div className="w-full max-w-[420px]">
         <h2
           id="main-content-title"
-          className="text-[20px] leading-snug sm:text-[24px]"
+          className="text-[22px] leading-snug tracking-tight sm:text-[28px]"
         >
           Upuść pliki tutaj, aby przesłać
         </h2>
@@ -35,7 +37,7 @@ export function DocumentUploadState({
         type="button"
         onClick={onAddDocuments}
         aria-describedby="document-upload-requirements"
-        className="min-h-[56px] w-full max-w-[360px] gap-3 rounded-full px-3 py-3 text-[14px] font-bold whitespace-normal sm:px-6 sm:text-[18px]"
+        className="min-h-[56px] w-full max-w-[360px] gap-3 rounded-2xl px-3 py-3 text-[16px] font-bold whitespace-normal sm:px-6 sm:text-[18px]"
       >
         <Upload aria-hidden="true" className="hidden size-[24px] sm:block" />
         Prześlij z urządzenia

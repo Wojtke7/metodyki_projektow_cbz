@@ -76,7 +76,7 @@ export function DocumentExplanationLoadingState() {
   return (
     <section
       aria-label="Przygotowywanie wyjaśnień dokumentów"
-      className="flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-[24px] overflow-y-auto p-[24px] lg:p-[32px]"
+      className="reading-surface flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-6 overflow-y-auto rounded-[24px] p-6 lg:p-8"
     >
       <svg
         aria-hidden="true"

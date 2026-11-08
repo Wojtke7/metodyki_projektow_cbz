@@ -31,30 +31,35 @@ export function DocumentAttachmentsState({
   onExplainDocuments,
 }: DocumentAttachmentsStateProps) {
   return (
-    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden lg:flex-row">
-      <div className="hidden min-h-0 min-w-0 flex-col p-[16px] sm:p-[24px] lg:flex lg:min-h-0 lg:w-[456px] lg:flex-none lg:border-r">
+    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-5">
+      {errors.length > 0 && (
+        <div className="shrink-0 lg:hidden">
+          <DocumentUploadInfo errors={errors} showRequirements={false} />
+        </div>
+      )}
+      <div className="glass-surface hidden min-h-0 min-w-0 flex-col rounded-[24px] p-5 lg:flex lg:w-[456px] lg:flex-none">
         <div className="mb-[16px] flex shrink-0 items-center justify-between gap-3">
           <h2 id="main-content-title" className="text-[20px]">
             Dokumenty
           </h2>
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             size="icon-sm"
             aria-label="Dodaj dokumenty"
             aria-describedby="document-upload-requirements"
             onClick={onAddDocuments}
-            className="-mr-[4px] rounded-full text-primary"
+            className="size-10 rounded-xl text-primary"
           >
             <Plus aria-hidden="true" className="size-[24px]" />
           </Button>
         </div>
-        <div className="mb-[20px] shrink-0">
+        <div className="mb-5 shrink-0">
           <DocumentUploadInfo errors={errors} />
         </div>
         <ul
           aria-label="Dodane dokumenty"
-          className="grid min-h-0 flex-1 grid-cols-[repeat(auto-fill,minmax(min(100%,172px),1fr))] content-start gap-[16px] overflow-y-auto"
+          className="grid min-h-0 flex-1 grid-cols-[repeat(auto-fill,minmax(min(100%,172px),1fr))] content-start gap-4 overflow-y-auto p-0.5"
         >
           {documents.map((file, index) => (
             <li key={index} className="min-w-0">
@@ -68,7 +73,7 @@ export function DocumentAttachmentsState({
               type="button"
               onClick={onExplainDocuments}
               disabled={explanationStatus === "loading"}
-              className="h-[48px] w-full rounded-[12px] text-[16px] font-bold"
+              className="min-h-12 w-full rounded-2xl px-3 py-3 text-[15px] font-bold whitespace-normal"
             >
               {explanationStatus === "loading"
                 ? "Wyjaśniam dokumenty…"
@@ -87,7 +92,7 @@ export function DocumentAttachmentsState({
           fallback={
             <div
               role="status"
-              className="flex min-h-0 flex-1 items-center justify-center p-6"
+              className="reading-surface flex min-h-0 flex-1 items-center justify-center rounded-[24px] p-6"
             >
               Wyjaśniam dokumenty…
             </div>

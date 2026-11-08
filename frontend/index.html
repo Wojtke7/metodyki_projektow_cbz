@@ -12,8 +12,7 @@
       content="ProsteFakty to aplikacja, która ułatwia zrozumienie trudnych dokumentów urzędowych. Zamienia pisma, umowy i decyzje administracyjne na jasne wyjaśnienia: co oznaczają, co trzeba zrobić i których terminów trzeba dopilnować."
     />
     <meta name="application-name" content="ProsteFakty" />
-    <meta name="theme-color" content="#F5F6F8" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0B1020" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f1f5fa" />
     <meta property="og:title" content="Proste Fakty" />
     <meta
       property="og:description"
@@ -29,12 +28,19 @@
     />
     <title>Proste Fakty</title>
     <script>
-      const theme = window.matchMedia("(prefers-color-scheme: dark)")
-      const syncTheme = () => {
-        document.documentElement.classList.toggle("dark", theme.matches)
-      }
-      syncTheme()
-      theme.addEventListener("change", syncTheme)
+      // Apply the theme before the app loads to avoid a light flash in dark mode.
+      let savedTheme;
+      try {
+        savedTheme = localStorage.getItem("prostefakty-theme");
+      } catch {}
+      const dark =
+        savedTheme === "dark" ||
+        (savedTheme !== "light" &&
+          matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.classList.toggle("dark", dark);
+      document.querySelector('meta[name="theme-color"]').content = dark
+        ? "#090b10"
+        : "#f1f5fa";
     </script>
   </head>
   <body>

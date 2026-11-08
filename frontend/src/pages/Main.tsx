@@ -76,7 +76,7 @@ export function Main() {
       />
       <div
         inert={documentsOpen || undefined}
-        className="flex h-dvh flex-col overflow-hidden lg:h-svh lg:min-h-[600px] lg:overflow-visible"
+        className="mx-auto flex h-dvh max-w-[1720px] flex-col overflow-hidden lg:h-svh lg:min-h-[600px] lg:overflow-visible"
       >
         <Header
           documentsOpen={documentsOpen}
@@ -84,7 +84,7 @@ export function Main() {
             showDocumentDrawerButton ? () => setDocumentsOpen(true) : undefined
           }
         />
-        <main className="flex min-h-0 flex-1 flex-col gap-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:grid lg:grid-cols-[88px_minmax(0,1440px)_88px] lg:justify-center lg:gap-6 lg:px-4 lg:pb-6">
+        <main className="flex min-h-0 flex-1 flex-col gap-3 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-5 lg:grid lg:grid-cols-[88px_minmax(0,1fr)] lg:gap-6 lg:px-8 lg:pb-6">
           <MainNav
             activeSection={activeSection}
             onSectionChange={(section) => {
@@ -117,12 +117,12 @@ export function Main() {
               }
             }}
             className={cn(
-              "order-first flex min-h-0 min-w-0 flex-col overflow-hidden lg:order-none lg:rounded-[24px] lg:bg-card lg:text-card-foreground",
+              "order-first flex min-h-0 min-w-0 flex-col lg:order-none",
               isUploadState
-                ? "mx-3 my-auto flex-none items-center justify-center rounded-[24px] border-2 border-dashed bg-card px-4 py-10 text-card-foreground sm:px-8 sm:py-12 lg:mx-0 lg:my-0 lg:w-full lg:max-w-[680px] lg:self-center lg:justify-self-center"
-                : "flex-1 lg:min-h-[480px] lg:border",
+                ? "reading-surface my-auto max-h-full flex-initial items-center overflow-y-auto rounded-[24px] px-5 py-8 sm:px-10 sm:py-12 lg:my-0 lg:w-full lg:max-w-[720px] lg:self-center lg:justify-self-center lg:py-14"
+                : "flex-1 lg:min-h-[480px]",
               activeSection !== "documents" &&
-                "items-center justify-center px-4 py-10",
+                "reading-surface items-center justify-center rounded-[24px] px-4 py-10",
             )}
           >
             {activeSection === "documents" ? (

@@ -72,14 +72,14 @@ export function DocumentDrawer({
 
   return (
     <div className="fixed inset-0 z-50 lg:hidden">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/55" onClick={onClose} />
       <div
         ref={dialogRef}
         id="document-drawer"
         role="dialog"
         aria-modal="true"
         aria-labelledby="document-drawer-title"
-        className="absolute inset-y-0 left-0 flex w-[min(480px,calc(100%-28px))] flex-col rounded-r-[28px] bg-card pt-[max(1.25rem,env(safe-area-inset-top))] text-card-foreground shadow-xl"
+        className="glass-surface absolute inset-y-0 left-0 flex w-[min(420px,calc(100%-28px))] flex-col rounded-r-[28px] pt-[max(1.25rem,env(safe-area-inset-top))] text-foreground"
       >
         <div className="flex items-center justify-between gap-3 px-5 pb-4">
           <h2 id="document-drawer-title" className="text-[22px]">
@@ -88,11 +88,11 @@ export function DocumentDrawer({
           <Button
             ref={closeRef}
             type="button"
-            variant="ghost"
+            variant="outline"
             size="icon"
             aria-label="Zamknij"
             onClick={onClose}
-            className="rounded-full"
+            className="size-11 rounded-2xl"
           >
             <X aria-hidden="true" className="size-6" />
           </Button>
@@ -118,7 +118,7 @@ export function DocumentDrawer({
             variant="outline"
             aria-describedby="document-upload-requirements"
             onClick={onAddDocuments}
-            className="h-12 w-full rounded-2xl bg-card text-[16px] font-bold text-primary"
+            className="min-h-12 w-full rounded-2xl px-3 py-3 text-[16px] font-bold whitespace-normal"
           >
             <Plus aria-hidden="true" className="size-5" />
             Dodaj dokument

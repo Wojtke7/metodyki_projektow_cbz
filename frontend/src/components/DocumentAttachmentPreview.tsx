@@ -14,7 +14,7 @@ export function DocumentAttachmentPreview({
   return (
     <figure
       aria-label={`Podgląd dokumentu ${number}`}
-      className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-[8px] border bg-muted"
+      className="document-paper relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-xl"
     >
       <FileText
         aria-hidden="true"

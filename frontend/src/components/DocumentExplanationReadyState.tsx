@@ -47,16 +47,15 @@ export function DocumentExplanationReadyState({
   return (
     <section
       aria-labelledby="document-explanation-title"
-      className="@container flex min-h-0 w-full flex-1 flex-col items-center overflow-y-auto px-[16px] py-[32px] sm:px-[24px] lg:min-w-0 lg:p-[32px]"
+      className="reading-surface @container flex min-h-0 w-full flex-1 flex-col items-center overflow-y-auto rounded-[24px] px-5 py-8 sm:px-8 lg:min-w-0 lg:p-10"
     >
       <div className="my-auto w-full max-w-[760px] shrink-0 text-center">
-        <MessagesSquare
-          aria-hidden="true"
-          className="mx-auto mb-[20px] size-[40px] text-primary"
-        />
+        <div className="button-raised mx-auto mb-6 flex size-20 items-center justify-center rounded-[24px] border text-primary">
+          <MessagesSquare aria-hidden="true" className="size-9" />
+        </div>
         <h2
           id="document-explanation-title"
-          className="mx-auto max-w-[460px] text-[20px] leading-snug sm:text-[24px]"
+          className="mx-auto max-w-[460px] text-[22px] leading-snug tracking-tight sm:text-[26px]"
         >
           Dokumenty gotowe do wyjaśnienia
         </h2>
@@ -114,7 +113,7 @@ export function DocumentExplanationReadyState({
               onBlur={() => setFocusedIcon(null)}
               className="relative flex aspect-square min-w-0 flex-1 items-center justify-center rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
             >
-              <div className="flex size-4/5 items-center justify-center rounded-full bg-muted/60">
+              <div className="flex size-4/5 items-center justify-center rounded-full border bg-muted/60">
                 <AnimatedExplanationIcon
                   name={icon}
                   active={hoveredIcon === icon || focusedIcon === icon}
@@ -139,7 +138,7 @@ export function DocumentExplanationReadyState({
           <Button
             type="button"
             onClick={onExplainDocuments}
-            className="mt-8 h-12 w-full max-w-[360px] rounded-[12px] text-[16px] font-bold lg:hidden"
+            className="mt-8 min-h-12 w-full max-w-[360px] rounded-2xl px-4 py-3 text-[16px] font-bold whitespace-normal lg:hidden"
           >
             Wyjaśnij dokumenty
           </Button>

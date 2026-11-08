@@ -22,7 +22,7 @@ export function DocumentUploadInfo({
         <ul
           role="alert"
           aria-label="Nie dodano niektórych plików"
-          className="mt-2 max-h-[100px] overflow-y-auto text-destructive"
+          className="upload-errors mt-2 max-h-[120px] overflow-y-auto rounded-xl px-3 py-2 text-left text-destructive"
         >
           {errors.map((error, index) => (
             <li key={index} className="wrap-anywhere">

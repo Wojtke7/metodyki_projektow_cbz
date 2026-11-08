@@ -24,20 +24,19 @@ export function MainNav({ activeSection, onSectionChange }: MainNavProps) {
   return (
     <nav
       aria-label="Nawigacja główna"
-      className="order-last mx-3 flex shrink-0 flex-row gap-1 rounded-full border bg-card p-1.5 lg:order-none lg:mx-0 lg:w-[88px] lg:flex-col lg:gap-2 lg:self-center lg:p-[7px]"
+      className="glass-surface order-last flex shrink-0 flex-row gap-1 rounded-[28px] p-1.5 lg:order-none lg:w-[88px] lg:flex-col lg:gap-2 lg:self-center lg:p-[7px]"
     >
       {sections.map((section) => (
         <Button
           key={section.id}
           type="button"
-          variant="ghost"
+          variant={activeSection === section.id ? "default" : "ghost"}
           aria-current={activeSection === section.id ? "page" : undefined}
           aria-controls="main-content"
           onClick={() => onSectionChange(section.id)}
           className={cn(
-            "h-16 min-w-0 flex-1 flex-col gap-1 rounded-full px-1 py-2 text-[11px] text-muted-foreground lg:h-[86px] lg:w-full lg:flex-none lg:gap-2 lg:px-0 lg:py-3 lg:text-[10px]",
-            activeSection === section.id &&
-              "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground",
+            "h-14 min-w-0 flex-1 flex-col gap-1 rounded-[22px] px-1 py-2 text-[11px] lg:h-[82px] lg:w-full lg:flex-none lg:gap-2 lg:px-0 lg:py-3 lg:text-[10px]",
+            activeSection !== section.id && "text-muted-foreground",
           )}
         >
           <span

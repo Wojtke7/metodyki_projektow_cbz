@@ -20,7 +20,7 @@ export function DocumentExplainedState({ documents }: { documents: File[] }) {
   return (
     <section
       aria-labelledby="document-explanations-title"
-      className="@container flex min-h-0 min-w-0 flex-1 flex-col p-[16px] sm:p-[24px] lg:p-[32px]"
+      className="reading-surface @container flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[24px] p-[16px] sm:p-[24px] lg:p-[32px]"
     >
       <h2 id="document-explanations-title" className="sr-only">
         Wyjaśnienia dokumentów
@@ -67,12 +67,12 @@ export function DocumentExplainedState({ documents }: { documents: File[] }) {
         </div>
       </div>
       <div className="shrink-0 pt-[24px]">
-        <div className="flex min-w-0 items-center gap-[12px] rounded-full bg-muted p-[12px] focus-within:ring-2 focus-within:ring-ring/40">
+        <div className="chat-composer flex min-w-0 items-center gap-[12px] rounded-[20px] p-[12px] focus-within:outline-2 focus-within:outline-offset-3 focus-within:outline-ring">
           <input
             type="text"
             aria-label="Zapytaj o dokumenty"
             placeholder="Zapytaj o dokumenty..."
-            className="min-w-0 flex-1 bg-transparent pl-[10px] text-[14px] outline-none placeholder:text-muted-foreground sm:text-[16px]"
+            className="min-w-0 flex-1 bg-transparent pl-[10px] text-[16px] outline-none placeholder:text-muted-foreground"
           />
           <Button
             type="button"

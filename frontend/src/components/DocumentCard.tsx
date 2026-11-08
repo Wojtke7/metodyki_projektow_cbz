@@ -29,14 +29,14 @@ export function DocumentCard({
       <article
         aria-hidden={compact || undefined}
         className={cn(
-          "min-w-0 border",
-          compact ? "rounded-[10px] p-1.5" : "rounded-[16px] p-3",
+          "document-card min-w-0",
+          compact ? "rounded-[12px] p-1.5" : "rounded-[20px] p-3",
         )}
       >
         <div
           aria-hidden="true"
           className={cn(
-            "relative flex min-w-0 flex-col overflow-hidden bg-muted",
+            "document-paper relative flex min-w-0 flex-col overflow-hidden",
             compact
               ? "h-[76px] rounded-[8px] p-1.5"
               : "h-[140px] rounded-[12px] p-3",
@@ -109,10 +109,10 @@ export function DocumentCard({
   }
 
   return (
-    <article className="min-w-0 rounded-[16px] border p-3">
+    <article className="document-card min-w-0 rounded-[20px] p-3">
       <div
         aria-hidden="true"
-        className="relative flex h-38 min-w-0 flex-col overflow-hidden rounded-[8px] bg-muted p-3"
+        className="document-paper relative flex h-38 min-w-0 flex-col overflow-hidden rounded-xl p-3"
       >
         <div className="flex items-start justify-between gap-2">
           <span className="line-clamp-2 text-[14px] leading-[22px] font-bold wrap-anywhere">
@@ -131,7 +131,7 @@ export function DocumentCard({
       </div>
       <h3
         title={file.name}
-        className="mt-[12px] truncate text-[14px] leading-[20px]"
+        className="mt-3 truncate text-[14px] leading-5"
       >
         {file.name}
       </h3>
