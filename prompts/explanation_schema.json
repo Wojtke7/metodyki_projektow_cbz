@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ExplanationResponse",
+  "description": "Struktura odpowiedzi asystenta AI wyjaśniającego pismo urzędowe prostym językiem",
+  "type": "object",
+  "properties": {
+    "summary": {
+      "type": "string",
+      "description": "Krótkie podsumowanie w 2-3 bardzo prostych zdaniach: nadawca, cel pisma i konieczność podjęcia działania."
+    },
+    "explanation": {
+      "type": "string",
+      "description": "Główne wyjaśnienie dokumentu w prostym języku, krótkimi zdaniami, bez prawniczego żargonu."
+    },
+    "action_checklist": {
+      "type": "array",
+      "description": "Lista konkretnych kroków, które czytelnik powinien wykonać. Jeśli brak działań, zawiera 'Brak wymaganych działań'.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "deadlines": {
+      "type": "array",
+      "description": "Wykryte terminy i daty. Jeśli w piśmie brak terminu, zawiera 'Brak terminu w piśmie'.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "amount": {
+      "type": "string",
+      "description": "Kwota do zapłaty, zwrotu lub rozliczenia. Jeśli brak kwoty w piśmie, zawiera 'Brak kwoty w piśmie'."
+    },
+    "source_passages": {
+      "type": "array",
+      "description": "Dosłowne cytaty z oryginalnego tekstu pisma, na których oparto ustalenia.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "disclaimer": {
+      "type": "string",
+      "description": "Klauzula informacyjna wskazująca, że odpowiedź ma charakter wyłącznie informacyjny i nie jest poradą prawną."
+    }
+  },
+  "required": [
+    "summary",
+    "explanation",
+    "action_checklist",
+    "deadlines",
+    "amount",
+    "source_passages",
+    "disclaimer"
+  ],
+  "additionalProperties": false
+}
+

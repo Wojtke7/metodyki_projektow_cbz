@@ -1,53 +1,60 @@
 """AI service layer — calls the Google Gemini API and returns a structured ExplainResponse.
 
 The API key is read from the application settings (server-side environment
-variable only).  It is never placed in source code or exposed to the frontend.
+variable only). It is never placed in source code or exposed to the frontend.
 
 Compatible with google-genai >= 1.0 (tested on 3.0.0).
 """
 
 import logging
+from pathlib import Path
 
 import google.genai as genai
 import google.genai.types as types
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from app.config import settings
 from app.schemas import ExplainResponse
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# System prompt
-# ---------------------------------------------------------------------------
+# Path to system prompt in prompts/ directory
+_PROMPT_PATH = Path(__file__).resolve().parent.parent.parent / "prompts" / "system_prompt.txt"
 
-_SYSTEM_PROMPT = """\
-Jesteś asystentem, który pomaga zrozumieć trudne oficjalne dokumenty pisane po polsku.
 
-Użytkownik przesyła tekst pisma urzędowego, umowy lub decyzji administracyjnej.
-Twoim zadaniem jest:
-1. Wyjaśnić dokument prostym, zrozumiałym językiem (pole "explanation").
-2. Zacytować dosłownie kluczowe fragmenty z oryginalnego tekstu, na których opierasz wyjaśnienie (pole "source_passages").
-3. Podać listę czynności, które odbiorca powinien wykonać (pole "action_checklist").
-4. Wypisać wszystkie terminy i daty wymienione w dokumencie (pole "deadlines").
+def get_system_instruction() -> str:
+    """Load system prompt from prompts/ directory or fallback to plain default."""
+    if _PROMPT_PATH.exists():
+        return _PROMPT_PATH.read_text(encoding="utf-8").strip()
+    return (
+        "Jesteś asystentem aplikacji ProsteFakty. Wyjaśniaj trudne pisma urzędowe "
+        "krótkimi, prostymi zdaniami, bez żargonu prawniczego. Nie zmyślaj faktów."
+    )
 
-Zasady, których MUSISZ przestrzegać:
-- Jeśli informacja nie wynika wprost z tekstu pisma, napisz "Brak informacji w piśmie" — nie zgaduj.
-- Nie udzielaj porad prawnych; zaznacz, że wyjaśnienie ma charakter informacyjny.
-- Odpowiadaj wyłącznie w języku polskim.
-"""
 
 # ---------------------------------------------------------------------------
 # Pydantic schema passed to Gemini for guaranteed structured JSON output
-# (google-genai >= 1.0 accepts a Pydantic model class as response_schema)
 # ---------------------------------------------------------------------------
 
 
 class _GeminiExplanation(BaseModel):
+    summary: str = ""
     explanation: str
-    source_passages: list[str]
-    action_checklist: list[str]
-    deadlines: list[str]
+    source_passages: list[str] = []
+    action_checklist: list[str] = []
+    deadlines: list[str] = []
+    amount: str = ""
+    disclaimer: str = (
+        "To wyjaśnienie ma charakter pomocniczy i nie jest poradą prawną. "
+        "W razie wątpliwości skontaktuj się z nadawcą pisma."
+    )
+
+    @field_validator("source_passages", "action_checklist", "deadlines", mode="before")
+    @classmethod
+    def ensure_list(cls, v):
+        if isinstance(v, str):
+            return [v.strip()] if v.strip() else []
+        return v
 
 
 def explain_letter(text: str) -> ExplainResponse:
@@ -67,7 +74,7 @@ def explain_letter(text: str) -> ExplainResponse:
             model=settings.gemini_model,
             contents=text,
             config=types.GenerateContentConfig(
-                system_instruction=_SYSTEM_PROMPT,
+                system_instruction=get_system_instruction(),
                 response_mime_type="application/json",
                 response_schema=_GeminiExplanation,
             ),
@@ -87,8 +94,11 @@ def explain_letter(text: str) -> ExplainResponse:
         raise RuntimeError("The AI service returned an unreadable response.") from exc
 
     return ExplainResponse(
+        summary=data.summary,
         explanation=data.explanation,
         source_passages=data.source_passages,
         action_checklist=data.action_checklist,
         deadlines=data.deadlines,
+        amount=data.amount,
+        disclaimer=data.disclaimer,
     )

@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     """
 
     gemini_api_key: str
-    gemini_model: str = "models/gemini-3.1-flash-lite"
+    gemini_model: str = "models/gemini-flash-lite-latest"
 
     model_config = SettingsConfigDict(
         # Look for a .env file starting from the backend/ directory and
