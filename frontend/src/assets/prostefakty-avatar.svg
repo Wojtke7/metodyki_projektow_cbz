@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="210" height="840" viewBox="120 24 210 840" role="img" aria-labelledby="title desc">
+  <title id="title">ProsteFakty — przyjazne pióro</title>
+  <desc id="desc">Granatowe pióro wieczne z błękitną stalówką. Tło przezroczyste.</desc>
+  <g id="cap">
+    <path fill="#142D63" d="M143 138C130 104 147 67 177 50C203 35 236 35 263 50C294 67 311 104 298 138Z"/>
+    <path fill="#263B61" d="M151 136C143 101 164 65 201 51C171 74 164 102 168 136Z"/>
+  </g>
+  <g id="barrel">
+    <path fill="#142D63" d="M145 156H297L285 608C242 615 199 615 155 608Z"/>
+    <path fill="#263B61" d="M154 158H170L178 608L164 607Z"/>
+  </g>
+  <path id="top-band" fill="#AFC8FF" d="M141 134H302C308 134 312 138 309 145L301 160C300 163 298 164 294 164H147C143 164 142 162 140 158L134 144C131 138 134 134 141 134Z"/>
+  <g id="nib">
+    <path fill="#142D63" d="M187 661H260C261 698 269 727 282 753L222 848L162 753C176 727 184 698 187 661Z"/>
+    <path fill="#AFC8FF" d="M194 666H250C252 702 260 729 277 753L222 848L166 753C183 725 190 697 194 666Z"/>
+    <path d="M222 667V750" fill="none" stroke="#142D63" stroke-width="6"/>
+    <circle cx="222" cy="750" r="9.5" fill="#142D63"/>
+  </g>
+  <g id="bottom-bands">
+    <path fill="#AFC8FF" d="M169 631H277L273 657C272 665 267 670 257 670H187C178 670 173 665 172 657Z"/>
+    <path fill="#142D63" d="M170 635H276L274 647C242 649 204 649 171 647Z"/>
+    <path fill="#AFC8FF" d="M156 600C200 603 244 603 287 600C294 599 299 603 295 611C290 622 284 633 277 637C240 640 204 640 168 637C160 633 153 622 148 611C144 604 149 599 156 600Z"/>
+  </g>
+</svg>

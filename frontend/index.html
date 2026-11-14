@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=6" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="ProsteFakty to aplikacja, która ułatwia zrozumienie trudnych dokumentów urzędowych. Zamienia pisma, umowy i decyzje administracyjne na jasne wyjaśnienia: co oznaczają, co trzeba zrobić i których terminów trzeba dopilnować."
+    />
+    <meta name="application-name" content="ProsteFakty" />
+    <meta name="theme-color" content="#F5F6F8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0B1020" media="(prefers-color-scheme: dark)" />
+    <meta property="og:title" content="Proste Fakty" />
+    <meta
+      property="og:description"
+      content="ProsteFakty to aplikacja, która ułatwia zrozumienie trudnych dokumentów urzędowych. Zamienia pisma, umowy i decyzje administracyjne na jasne wyjaśnienia: co oznaczają, co trzeba zrobić i których terminów trzeba dopilnować."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pl_PL" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Proste Fakty" />
+    <meta
+      name="twitter:description"
+      content="ProsteFakty to aplikacja, która ułatwia zrozumienie trudnych dokumentów urzędowych. Zamienia pisma, umowy i decyzje administracyjne na jasne wyjaśnienia: co oznaczają, co trzeba zrobić i których terminów trzeba dopilnować."
+    />
+    <title>Proste Fakty</title>
+    <script>
+      const theme = window.matchMedia("(prefers-color-scheme: dark)")
+      const syncTheme = () => {
+        document.documentElement.classList.toggle("dark", theme.matches)
+      }
+      syncTheme()
+      theme.addEventListener("change", syncTheme)
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
