@@ -19,7 +19,13 @@ concurrency:
 jobs:
   deploy:
     name: Deploy to EC2
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    # Deploy only after a successful CI run caused by a push to main (never a pull request,
+    # including pull requests from forks), or a manual run started from main.
+    if: >-
+      ${{
+        (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+        (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+      }}
     runs-on: ubuntu-latest
     environment: production
     env:
