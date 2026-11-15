@@ -96,6 +96,22 @@ The workflows only run once they are on `main`. Merge the pull request that adds
 
 After a run, open `http://<EC2_HOST>/` and `http://<EC2_HOST>/health` (expected `{"status":"ok"}`).
 
+## Changing the server configuration
+
+The `Deploy` workflow updates the application (backend, frontend and the files in `deploy/`) but **does not apply** `deploy/nginx.conf` or `deploy/prostefakty-backend.service` to the system. These two files are copied only by `setup-server.sh`. After changing one of them, apply it by hand:
+
+```bash
+# nginx
+sudo cp /opt/prostefakty/deploy/nginx.conf /etc/nginx/sites-available/prostefakty
+sudo nginx -t && sudo systemctl reload nginx
+
+# systemd unit
+sudo cp /opt/prostefakty/deploy/prostefakty-backend.service /etc/systemd/system/
+sudo systemctl daemon-reload && sudo systemctl restart prostefakty-backend
+```
+
+Always run `sudo nginx -t` before reloading: a broken configuration is not loaded by the running nginx, but it stops nginx from starting after a reboot. The `Deploy` workflow uploads the latest `deploy/` folder first, so run these commands after a deployment.
+
 ## Checking and troubleshooting
 
 ```bash
@@ -112,6 +128,7 @@ sudo nginx -t
 | Health check fails | The service is not running: check `journalctl`. Common cause: a dependency that does not install on the server's Python version. |
 | `/explain` returns 502 | `GEMINI_API_KEY` is missing or invalid in `/opt/prostefakty/.env`. |
 | Site does not open in the browser | Port 80 is closed in the Security Group, or the IP changed (use an Elastic IP). |
+| Browser error `Failed to fetch dynamically imported module ... .mjs` | nginx serves `.mjs` files with a wrong content type. `deploy/nginx.conf` contains the fix; apply it as described above. |
 
 ## Rollback
 
