@@ -1,15 +1,41 @@
-export const DOCUMENT_EXTENSIONS = [".doc", ".docx", ".pdf", ".txt"];
+export const DOCUMENT_EXTENSIONS = [
+  ".doc",
+  ".docx",
+  ".pdf",
+  ".txt",
+  ".jpg",
+  ".jpeg",
+  ".png",
+];
 export const MAX_DOCUMENT_SIZE_MB = 10;
 
 export type DocumentUploadError =
   | { key: "errors.unsupportedType"; name: string }
   | { key: "errors.tooLarge"; name: string; maxSize: number };
 
-export class TranslatedError extends Error {
-  readonly key: "errors.pdfOnly" | "errors.noText";
-  readonly values: { name: string };
+export type ExplainBackendErrorKey =
+  "errors.unsupportedType" | "errors.tooLarge" | "errors.noText";
 
-  constructor(key: TranslatedError["key"], values: { name: string }) {
+const EXPLAIN_BACKEND_ERROR_KEYS: Record<string, ExplainBackendErrorKey> = {
+  wrong_type: "errors.unsupportedType",
+  unsupported_type: "errors.unsupportedType",
+  invalid_type: "errors.unsupportedType",
+  invalid_file_type: "errors.unsupportedType",
+  file_too_big: "errors.tooLarge",
+  file_too_large: "errors.tooLarge",
+  too_large: "errors.tooLarge",
+  no_text: "errors.noText",
+  empty_text: "errors.noText",
+};
+
+export class TranslatedError extends Error {
+  readonly key: ExplainBackendErrorKey;
+  readonly values: { name: string; maxSize?: number };
+
+  constructor(
+    key: TranslatedError["key"],
+    values: { name: string; maxSize?: number },
+  ) {
     super(key);
     this.name = "TranslatedError";
     this.key = key;
@@ -42,34 +68,41 @@ export function validateDocuments(files: File[]) {
   return { accepted, errors };
 }
 
-export async function readDocumentText(file: File) {
-  const name = file.name.toLowerCase();
-  if (name.endsWith(".txt")) return (await file.text()).trim();
-  if (!name.endsWith(".pdf")) {
-    throw new TranslatedError("errors.pdfOnly", { name: file.name });
+function explainErrorCode(value: unknown) {
+  let raw: unknown = value;
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const record = value as { code?: unknown; error?: unknown };
+    raw = record.code ?? record.error;
   }
+  if (typeof raw !== "string") return null;
 
-  const [{ getDocument, GlobalWorkerOptions }, worker] = await Promise.all([
-    import("pdfjs-dist"),
-    import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
-  ]);
-  GlobalWorkerOptions.workerSrc = worker.default;
-  const task = getDocument({
-    data: new Uint8Array(await file.arrayBuffer()),
-  });
+  const code = raw
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_")
+    .replace(/[^a-z0-9_]+$/g, "");
+  return code in EXPLAIN_BACKEND_ERROR_KEYS ? code : null;
+}
 
-  try {
-    const pdf = await task.promise;
-    const pages: string[] = [];
-    for (let number = 1; number <= pdf.numPages; number += 1) {
-      const page = await pdf.getPage(number);
-      const content = await page.getTextContent();
-      pages.push(
-        content.items.map((item) => ("str" in item ? item.str : "")).join(" "),
-      );
-    }
-    return pages.join("\n").trim();
-  } finally {
-    await task.destroy();
+function responseDetail(data: unknown) {
+  if (
+    data &&
+    typeof data === "object" &&
+    !Array.isArray(data) &&
+    "detail" in data
+  ) {
+    return (data as { detail: unknown }).detail;
   }
+  return data;
+}
+
+export function explainBackendErrorKey(
+  status: number | undefined,
+  data: unknown,
+) {
+  const code = explainErrorCode(responseDetail(data)) ?? explainErrorCode(data);
+  if (code) return EXPLAIN_BACKEND_ERROR_KEYS[code];
+  if (status === 415) return "errors.unsupportedType";
+  if (status === 413) return "errors.tooLarge";
+  return null;
 }

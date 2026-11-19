@@ -1,22 +1,29 @@
 import { describe, expect, test } from "bun:test";
 
 import {
+  explainBackendErrorKey,
   MAX_DOCUMENT_SIZE_MB,
-  readDocumentText,
   TranslatedError,
   validateDocuments,
 } from "../src/lib/documents";
+import i18n from "../src/translations";
+import { explainErrorMessage } from "../src/hooks/useExplainDocuments";
 
 describe("document upload validation", () => {
-  test("accepts Word, PDF, and TXT files, including uppercase extensions and empty MIME types", () => {
+  test("accepts Word, PDF, TXT, and photo files, including uppercase extensions and empty MIME types", () => {
     const files = [
       "pismo.doc",
       "wniosek.docx",
       "decyzja.pdf",
       "notatka.txt",
+      "skan.jpg",
+      "zdjęcie.jpeg",
+      "paragon.png",
       "PISMO.DOCX",
       "DECYZJA.PDF",
       "NOTATKA.TXT",
+      "FAKTURA.JPEG",
+      "SKAN.PNG",
     ].map((name) => new File(["document"], name));
 
     expect(validateDocuments(files)).toEqual({ accepted: files, errors: [] });
@@ -24,7 +31,7 @@ describe("document upload validation", () => {
 
   test("rejects unsupported files, missing extensions, and disguised extensions", () => {
     const files = [
-      "zdjęcie.png",
+      "zdjęcie.gif",
       "dokument",
       "decyzja.pdf.exe",
       "notatka.txt.exe",
@@ -47,7 +54,7 @@ describe("document upload validation", () => {
     );
     const overLimit = new File(
       [new Uint8Array(10 * 1024 * 1024 + 1)],
-      "za-duży.pdf",
+      "za-duży.jpeg",
     );
     const result = validateDocuments([atLimit, overLimit]);
 
@@ -55,7 +62,7 @@ describe("document upload validation", () => {
     expect(result.errors).toEqual([
       {
         key: "errors.tooLarge",
-        name: "za-duży.pdf",
+        name: "za-duży.jpeg",
         maxSize: MAX_DOCUMENT_SIZE_MB,
       },
     ]);
@@ -71,13 +78,13 @@ describe("document upload validation", () => {
 
   test("keeps valid files in order when a selection also contains invalid files", () => {
     const first = new File(["document"], "pierwszy.docx");
-    const invalid = new File(["image"], "zdjęcie.jpg");
+    const invalid = new File(["image"], "zdjęcie.gif");
     const second = new File(["document"], "drugi.pdf");
     const result = validateDocuments([first, invalid, second]);
 
     expect(result.accepted).toEqual([first, second]);
     expect(result.errors).toEqual([
-      { key: "errors.unsupportedType", name: "zdjęcie.jpg" },
+      { key: "errors.unsupportedType", name: "zdjęcie.gif" },
     ]);
   });
 
@@ -86,23 +93,80 @@ describe("document upload validation", () => {
   });
 });
 
-describe("document text", () => {
-  test("reads TXT content, including Polish characters and uppercase extension", async () => {
-    const text = "Zażółć gęślą jaźń.\nTermin: 7 dni.";
-    const file = new File([text], "NOTATKA.TXT");
-
-    expect(await readDocumentText(file)).toBe(text);
-  });
-
-  test("returns empty text for a blank TXT file", async () => {
-    expect(await readDocumentText(new File(["  \n"], "pusta.txt"))).toBe("");
-  });
-
-  test("refuses Word files that cannot be read yet", async () => {
-    const file = new File(["document"], "pismo.docx");
-
-    await expect(readDocumentText(file)).rejects.toEqual(
-      new TranslatedError("errors.pdfOnly", { name: file.name }),
+describe("backend explain errors", () => {
+  test("maps wrong type, file too big, and no text from status or detail", () => {
+    expect(explainBackendErrorKey(415, "<html>unsupported</html>")).toBe(
+      "errors.unsupportedType",
     );
+    expect(explainBackendErrorKey(400, { detail: "wrong type" })).toBe(
+      "errors.unsupportedType",
+    );
+    expect(explainBackendErrorKey(413, { detail: "payload" })).toBe(
+      "errors.tooLarge",
+    );
+    expect(explainBackendErrorKey(400, { error: "file-too-large" })).toBe(
+      "errors.tooLarge",
+    );
+    expect(explainBackendErrorKey(422, { detail: { code: "no_text" } })).toBe(
+      "errors.noText",
+    );
+    expect(explainBackendErrorKey(422, "No text.")).toBe("errors.noText");
+    expect(
+      explainBackendErrorKey(422, { detail: [{ msg: "Field required" }] }),
+    ).toBeNull();
+    expect(
+      explainBackendErrorKey(500, { detail: "The AI service failed." }),
+    ).toBeNull();
+  });
+
+  test("shows wrong type, file too big, and no text in PL, EN, and UK", async () => {
+    const messages = {
+      pl: {
+        unsupportedType:
+          "„scan.png”: wybierz plik DOC, DOCX, PDF, TXT, JPG, JPEG lub PNG.",
+        tooLarge: "„big.jpeg”: plik przekracza maksymalny rozmiar 10 MB.",
+        noText: "„empty.pdf”: brak tekstu do wyjaśnienia.",
+      },
+      en: {
+        unsupportedType:
+          "“scan.png”: choose a DOC, DOCX, PDF, TXT, JPG, JPEG, or PNG file.",
+        tooLarge: "“big.jpeg”: file exceeds the maximum size of 10 MB.",
+        noText: "“empty.pdf”: no text to explain.",
+      },
+      uk: {
+        unsupportedType:
+          "«scan.png»: виберіть файл DOC, DOCX, PDF, TXT, JPG, JPEG або PNG.",
+        tooLarge: "«big.jpeg»: файл перевищує максимальний розмір 10 МБ.",
+        noText: "«empty.pdf»: немає тексту для пояснення.",
+      },
+    } as const;
+
+    if (!i18n.isInitialized) await i18n.init();
+
+    try {
+      for (const language of ["pl", "en", "uk"] as const) {
+        await i18n.changeLanguage(language);
+        expect(
+          explainErrorMessage(
+            new TranslatedError("errors.unsupportedType", { name: "scan.png" }),
+          ),
+        ).toBe(messages[language].unsupportedType);
+        expect(
+          explainErrorMessage(
+            new TranslatedError("errors.tooLarge", {
+              name: "big.jpeg",
+              maxSize: MAX_DOCUMENT_SIZE_MB,
+            }),
+          ),
+        ).toBe(messages[language].tooLarge);
+        expect(
+          explainErrorMessage(
+            new TranslatedError("errors.noText", { name: "empty.pdf" }),
+          ),
+        ).toBe(messages[language].noText);
+      }
+    } finally {
+      await i18n.changeLanguage("pl");
+    }
   });
 });
