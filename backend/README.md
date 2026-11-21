@@ -13,7 +13,8 @@ backend/
 │   ├── main.py        # FastAPI application, CORS, router registration
 │   ├── routes.py      # GET /health  and  POST /explain
 │   ├── schemas.py     # Pydantic request / response models
-│   ├── ai_service.py  # Gemini API client (key loaded from env, never from code)
+│   ├── ai_service.py  # Gemini API client and PII masking entry point
+│   ├── pii.py         # Local Presidio detection and anonymization
 │   └── config.py      # Settings read from environment variables / .env
 └── requirements.txt
 ```
@@ -94,6 +95,7 @@ pytest tests/
 ## Security notes
 
 - `GEMINI_API_KEY` is read **only** from the server-side environment.  It is never placed in source code, returned in any response, or sent to the browser.
+- Presidio detects and replaces supported personal identifiers locally before text is sent to Gemini. The configured recognizers cover Polish identifiers plus credit cards, IP/MAC addresses, cryptocurrency addresses and URLs. They use regex and checksum validation without loading an NLP model.
 - The `.env` file is listed in `.gitignore` and must never be committed.
 - Empty or invalid `text` returns a `422 Unprocessable Entity` with a clear error message.
 - If the AI service fails or returns an unreadable answer, the server returns `502 Bad Gateway` with a clear message.

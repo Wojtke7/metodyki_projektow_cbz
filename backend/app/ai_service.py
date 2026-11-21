@@ -14,6 +14,7 @@ import google.genai.types as types
 from pydantic import BaseModel, field_validator
 
 from app.config import settings
+from app.pii import redact_pii
 from app.schemas import ExplainResponse
 
 logger = logging.getLogger(__name__)
@@ -67,6 +68,7 @@ def explain_letter(text: str) -> ExplainResponse:
     if not text or not text.strip():
         raise ValueError("Letter text must not be empty.")
 
+    text = redact_pii(text)
     client = genai.Client(api_key=settings.gemini_api_key)
 
     try:
