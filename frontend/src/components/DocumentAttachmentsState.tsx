@@ -20,6 +20,7 @@ export type DocumentExplanationStatus = "ready" | "loading" | "explained";
 type DocumentAttachmentsStateProps = {
   documents: File[];
   onAddDocuments: () => void;
+  onRemoveDocument: (index: number) => void;
   errors: string[];
   explanations: DocumentExplanation[];
   explanationStatus: DocumentExplanationStatus;
@@ -29,6 +30,7 @@ type DocumentAttachmentsStateProps = {
 export function DocumentAttachmentsState({
   documents,
   onAddDocuments,
+  onRemoveDocument,
   errors,
   explanations,
   explanationStatus,
@@ -69,7 +71,12 @@ export function DocumentAttachmentsState({
         >
           {documents.map((file, index) => (
             <li key={index} className="min-w-0">
-              <DocumentCard file={file} number={index + 1} />
+              <DocumentCard
+                file={file}
+                number={index + 1}
+                onRemove={() => onRemoveDocument(index)}
+                removeDisabled={explanationStatus === "loading"}
+              />
             </li>
           ))}
         </ul>

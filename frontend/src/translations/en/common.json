@@ -55,10 +55,11 @@
   "document": {
     "label": "Document {{number}}: {{name}}",
     "preview": "Preview of document {{number}}",
+    "remove": "Remove document {{name}}",
     "file": "FILE"
   },
   "errors": {
-    "unsupportedType": "“{{name}}”: choose a DOC, DOCX, PDF, TXT, JPG, JPEG, or PNG file.",
+    "unsupportedType": "“{{name}}”: choose a DOCX, PDF, TXT, JPG, JPEG, or PNG file.",
     "tooLarge": "“{{name}}”: file exceeds the maximum size of {{maxSize}} MB.",
     "noText": "“{{name}}”: no text to explain.",
     "offline": "Cannot connect to the server.",

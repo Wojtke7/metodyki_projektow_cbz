@@ -55,10 +55,11 @@
   "document": {
     "label": "Документ {{number}}: {{name}}",
     "preview": "Перегляд документа {{number}}",
+    "remove": "Видалити документ {{name}}",
     "file": "ФАЙЛ"
   },
   "errors": {
-    "unsupportedType": "«{{name}}»: виберіть файл DOC, DOCX, PDF, TXT, JPG, JPEG або PNG.",
+    "unsupportedType": "«{{name}}»: виберіть файл DOCX, PDF, TXT, JPG, JPEG або PNG.",
     "tooLarge": "«{{name}}»: файл перевищує максимальний розмір {{maxSize}} МБ.",
     "noText": "«{{name}}»: немає тексту для пояснення.",
     "offline": "Не вдалося з’єднатися з сервером.",

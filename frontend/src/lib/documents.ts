@@ -1,5 +1,4 @@
 export const DOCUMENT_EXTENSIONS = [
-  ".doc",
   ".docx",
   ".pdf",
   ".txt",
@@ -8,6 +7,11 @@ export const DOCUMENT_EXTENSIONS = [
   ".png",
 ];
 export const MAX_DOCUMENT_SIZE_MB = 10;
+
+export function removeDocumentAt(documents: File[], index: number) {
+  if (index < 0 || index >= documents.length) return documents;
+  return documents.filter((_, currentIndex) => currentIndex !== index);
+}
 
 export type DocumentUploadError =
   | { key: "errors.unsupportedType"; name: string }
