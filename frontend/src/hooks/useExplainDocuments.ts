@@ -7,14 +7,21 @@ import {
   MAX_DOCUMENT_SIZE_MB,
   TranslatedError,
 } from "@/lib/documents";
-import i18n from "@/translations";
+import i18n, { languages, type Language } from "@/translations";
+
+function activeLanguage(): Language {
+  return (
+    languages.find((language) => language === i18n.resolvedLanguage) ?? "pl"
+  );
+}
 
 async function explainFiles(files: File[]) {
   const explanations: DocumentExplanation[] = [];
+  const language = activeLanguage();
 
   for (const file of files) {
     try {
-      explanations.push(await explainFile(file));
+      explanations.push(await explainFile(file, language));
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const key = explainBackendErrorKey(
