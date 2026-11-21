@@ -12,6 +12,8 @@ type DocumentDrawerProps = {
   errors: string[];
   onClose: () => void;
   onAddDocuments: () => void;
+  onRemoveDocument: (index: number) => void;
+  removeDisabled?: boolean;
 };
 
 const focusableSelector = [
@@ -29,6 +31,8 @@ export function DocumentDrawer({
   errors,
   onClose,
   onAddDocuments,
+  onRemoveDocument,
+  removeDisabled = false,
 }: DocumentDrawerProps) {
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -110,7 +114,13 @@ export function DocumentDrawer({
         >
           {documents.map((file, index) => (
             <li key={index} className="min-w-0">
-              <DocumentCard file={file} number={index + 1} variant="sheet" />
+              <DocumentCard
+                file={file}
+                number={index + 1}
+                variant="sheet"
+                onRemove={() => onRemoveDocument(index)}
+                removeDisabled={removeDisabled}
+              />
             </li>
           ))}
         </ul>
