@@ -1,19 +1,35 @@
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 
-import { explainLetter, type DocumentExplanation } from "@/api/explain";
-import { readDocumentText, TranslatedError } from "@/lib/documents";
+import { explainFile, type DocumentExplanation } from "@/api/explain";
+import {
+  explainBackendErrorKey,
+  MAX_DOCUMENT_SIZE_MB,
+  TranslatedError,
+} from "@/lib/documents";
 import i18n from "@/translations";
 
 async function explainFiles(files: File[]) {
   const explanations: DocumentExplanation[] = [];
 
   for (const file of files) {
-    const text = (await readDocumentText(file)).trim();
-    if (!text) {
-      throw new TranslatedError("errors.noText", { name: file.name });
+    try {
+      explanations.push(await explainFile(file));
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const key = explainBackendErrorKey(
+          error.response?.status,
+          error.response?.data,
+        );
+        if (key) {
+          throw new TranslatedError(key, {
+            name: file.name,
+            maxSize: MAX_DOCUMENT_SIZE_MB,
+          });
+        }
+      }
+      throw error;
     }
-    explanations.push(await explainLetter(text));
   }
 
   return explanations;
@@ -24,12 +40,12 @@ export function useExplainDocuments() {
 }
 
 export function explainErrorMessage(error: unknown) {
+  if (error instanceof TranslatedError) return i18n.t(error.key, error.values);
   if (axios.isAxiosError(error)) {
     const detail = error.response?.data?.detail;
     if (typeof detail === "string" && detail) return detail;
     if (!error.response) return i18n.t("errors.offline");
   }
-  if (error instanceof TranslatedError) return i18n.t(error.key, error.values);
   if (error instanceof Error && error.message) return error.message;
   return i18n.t("errors.explainFailed");
 }
