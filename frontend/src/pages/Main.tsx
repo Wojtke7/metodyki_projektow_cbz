@@ -41,16 +41,22 @@ export function Main() {
     Record<string, DocumentExplanation[]>
   >({});
 
-  // Store explanations explicitly keyed by the language returned by the mutation
-  useEffect(() => {
-    if (explainDocuments.isSuccess && explainDocuments.data) {
-      const { language, explanations } = explainDocuments.data;
-      setExplanationsByLang((previous) => ({
-        ...previous,
-        [language]: explanations,
-      }));
-    }
-  }, [explainDocuments.isSuccess, explainDocuments.data]);
+  const handleExplain = useCallback(
+    (lang: string) => {
+      explainDocuments.mutate(
+        { files: documents, language: lang },
+        {
+          onSuccess: ({ language, explanations }) => {
+            setExplanationsByLang((previous) => ({
+              ...previous,
+              [language]: explanations,
+            }));
+          },
+        },
+      );
+    },
+    [documents, explainDocuments],
+  );
 
   const activeExplanations =
     explanationsByLang[currentLanguage] ??
@@ -84,18 +90,16 @@ export function Main() {
         !explanationsByLang[currentLanguage] &&
         !explainDocuments.isPending
       ) {
-        explainDocuments.mutate({
-          files: documents,
-          language: currentLanguage,
-        });
+        handleExplain(currentLanguage);
       }
     }
   }, [
     currentLanguage,
     hasExplanations,
-    documents,
+    documents.length,
     explanationsByLang,
-    explainDocuments,
+    explainDocuments.isPending,
+    handleExplain,
   ]);
 
   const visibleErrors = [
@@ -215,10 +219,7 @@ export function Main() {
                     explanations={activeExplanations}
                     explanationStatus={explanationStatus}
                     onExplainDocuments={() =>
-                      explainDocuments.mutate({
-                        files: documents,
-                        language: currentLanguage,
-                      })
+                      handleExplain(currentLanguage)
                     }
                   />
                 ) : (
