@@ -2,15 +2,12 @@ import { describe, expect, test } from "bun:test";
 
 import {
   MAX_DOCUMENT_SIZE_MB,
-  readDocumentText,
-  TranslatedError,
   validateDocuments,
 } from "../src/lib/documents";
 
 describe("document upload validation", () => {
-  test("accepts Word, PDF, and TXT files, including uppercase extensions and empty MIME types", () => {
+  test("accepts DOCX, PDF, and TXT files, including uppercase extensions", () => {
     const files = [
-      "pismo.doc",
       "wniosek.docx",
       "decyzja.pdf",
       "notatka.txt",
@@ -61,8 +58,16 @@ describe("document upload validation", () => {
     ]);
   });
 
+  test("rejects legacy DOC files", () => {
+    const file = new File(["document"], "pismo.doc");
+    expect(validateDocuments([file])).toEqual({
+      accepted: [],
+      errors: [{ key: "errors.unsupportedType", name: file.name }],
+    });
+  });
+
   test("applies the size limit per file rather than to the whole selection", () => {
-    const files = ["pierwszy.doc", "drugi.pdf"].map(
+    const files = ["pierwszy.docx", "drugi.pdf"].map(
       (name) => new File([new Uint8Array(6 * 1024 * 1024)], name),
     );
 
@@ -83,26 +88,5 @@ describe("document upload validation", () => {
 
   test("handles an empty selection without errors", () => {
     expect(validateDocuments([])).toEqual({ accepted: [], errors: [] });
-  });
-});
-
-describe("document text", () => {
-  test("reads TXT content, including Polish characters and uppercase extension", async () => {
-    const text = "Zażółć gęślą jaźń.\nTermin: 7 dni.";
-    const file = new File([text], "NOTATKA.TXT");
-
-    expect(await readDocumentText(file)).toBe(text);
-  });
-
-  test("returns empty text for a blank TXT file", async () => {
-    expect(await readDocumentText(new File(["  \n"], "pusta.txt"))).toBe("");
-  });
-
-  test("refuses Word files that cannot be read yet", async () => {
-    const file = new File(["document"], "pismo.docx");
-
-    await expect(readDocumentText(file)).rejects.toEqual(
-      new TranslatedError("errors.pdfOnly", { name: file.name }),
-    );
   });
 });

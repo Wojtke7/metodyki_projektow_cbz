@@ -19,31 +19,16 @@ from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
 
 _PESEL_PATTERN = r"(?<![A-Za-z0-9])[0-9](?:[ -]?[0-9]){10}(?![A-Za-z0-9])"
+_PESEL_LABEL_PATTERN = re.compile(r"\bPESEL\b\s*[:#-]?\s*$", re.IGNORECASE)
 _NIP_PATTERN = r"(?<![A-Za-z0-9])[0-9](?:[ -]?[0-9]){9}(?![A-Za-z0-9])"
-_ACCOUNT_PATTERN = r"(?<![A-Za-z0-9])[0-9](?:[ ]?[0-9]){25}(?![A-Za-z0-9])"
-_IBAN_PATTERN = (
-    r"(?<![A-Za-z0-9])[A-Z]{2}[0-9]{2}(?:[ ]?[A-Z0-9]){11,30}(?![A-Za-z0-9])"
-)
-_EMAIL_PATTERN = (
-    r"(?<![A-Za-z0-9.!#$%&'*+/=?^_`{|}~-])"
-    r"[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@"
-    r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?"
-    r"(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+"
-)
 _ID_CARD_PATTERN = r"(?<![A-Za-z0-9])[A-Z]{3}[0-9]{6}(?![A-Za-z0-9])"
 _PASSPORT_PATTERN = r"(?<![A-Za-z0-9])[A-Z]{2}[0-9]{7}(?![A-Za-z0-9])"
-_PHONE_PATTERN = r"(?<![A-Za-z0-9])(?:\+?48[ -]?)?(?:[0-9][ -]?){8}[0-9](?![A-Za-z0-9])"
-_CURRENCY_CONTEXT = re.compile(r"(?:zł|pln|eur|usd|gbp|€|\$|£)", re.IGNORECASE)
 
 _PLACEHOLDERS = {
     "PESEL": "[PESEL]",
     "NIP": "[NIP]",
     "ID_CARD": "[ID CARD]",
     "PASSPORT": "[PASSPORT]",
-    "IBAN": "[IBAN]",
-    "ACCOUNT": "[ACCOUNT]",
-    "PHONE": "[PHONE]",
-    "EMAIL": "[EMAIL]",
     "CREDIT_CARD": "[CREDIT CARD]",
     "IP_ADDRESS": "[IP ADDRESS]",
     "MAC_ADDRESS": "[MAC ADDRESS]",
@@ -65,6 +50,12 @@ def _is_pesel(value: str) -> bool:
     return (10 - checksum % 10) % 10 == int(digits[10])
 
 
+def _is_valid_or_labeled_pesel(text: str, start: int, end: int) -> bool:
+    value = text[start:end]
+    context = text[max(0, start - 24) : start]
+    return _is_pesel(value) or _PESEL_LABEL_PATTERN.search(context) is not None
+
+
 def _is_nip(value: str) -> bool:
     digits = _digits(value)
     if len(digits) != 10:
@@ -72,30 +63,6 @@ def _is_nip(value: str) -> bool:
     weights = (6, 5, 7, 2, 3, 4, 5, 6, 7)
     checksum = sum(int(digit) * weight for digit, weight in zip(digits[:9], weights)) % 11
     return checksum != 10 and checksum == int(digits[9])
-
-
-def _mod97(value: str) -> int:
-    remainder = 0
-    for character in value:
-        digit_value = int(character) if character.isdigit() else ord(character) - ord("A") + 10
-        for digit in str(digit_value):
-            remainder = (remainder * 10 + int(digit)) % 97
-    return remainder
-
-
-def _is_iban(value: str) -> bool:
-    iban = re.sub(r"\s", "", value).upper()
-    return 15 <= len(iban) <= 34 and _mod97(iban[4:] + iban[:4]) == 1
-
-
-def _is_polish_account(value: str) -> bool:
-    digits = _digits(value)
-    return len(digits) == 26 and _mod97(digits[2:] + "2521" + digits[:2]) == 1
-
-
-def _phone_not_amount(text: str, start: int, end: int) -> bool:
-    context = text[max(0, start - 6) : min(len(text), end + 8)]
-    return _CURRENCY_CONTEXT.search(context) is None
 
 
 class _PolishPatternRecognizer(PatternRecognizer):
@@ -138,18 +105,14 @@ class _PolishPatternRecognizer(PatternRecognizer):
 
 def _create_analyzer() -> AnalyzerEngine:
     recognizers = [
-        _PolishPatternRecognizer("PESEL", _PESEL_PATTERN, validator=_is_pesel),
+        _PolishPatternRecognizer(
+            "PESEL",
+            _PESEL_PATTERN,
+            span_validator=_is_valid_or_labeled_pesel,
+        ),
         _PolishPatternRecognizer("NIP", _NIP_PATTERN, validator=_is_nip),
         _PolishPatternRecognizer("ID_CARD", _ID_CARD_PATTERN),
         _PolishPatternRecognizer("PASSPORT", _PASSPORT_PATTERN),
-        _PolishPatternRecognizer("IBAN", _IBAN_PATTERN, validator=_is_iban),
-        _PolishPatternRecognizer("ACCOUNT", _ACCOUNT_PATTERN, validator=_is_polish_account),
-        _PolishPatternRecognizer(
-            "PHONE",
-            _PHONE_PATTERN,
-            span_validator=_phone_not_amount,
-        ),
-        _PolishPatternRecognizer("EMAIL", _EMAIL_PATTERN),
         CreditCardRecognizer(supported_language="pl"),
         IpRecognizer(supported_language="pl"),
         MacAddressRecognizer(supported_language="pl"),
@@ -201,6 +164,15 @@ def redact_pii(text: str) -> str:
         entities=list(_PLACEHOLDERS),
         language="pl",
     )
+    results = [
+        result
+        for result in results
+        if not (
+            result.entity_type == "URL"
+            and result.start > 0
+            and text[result.start - 1] == "@"
+        )
+    ]
     return _ANONYMIZER.anonymize(
         text=text,
         analyzer_results=results,

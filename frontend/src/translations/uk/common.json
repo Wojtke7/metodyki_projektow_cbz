@@ -58,9 +58,8 @@
     "file": "ФАЙЛ"
   },
   "errors": {
-    "unsupportedType": "«{{name}}»: виберіть файл DOC, DOCX, PDF або TXT.",
+    "unsupportedType": "«{{name}}»: виберіть файл DOCX, PDF або TXT.",
     "tooLarge": "«{{name}}»: файл перевищує максимальний розмір {{maxSize}} МБ.",
-    "pdfOnly": "«{{name}}»: наразі можна пояснити лише файл PDF або TXT.",
     "noText": "«{{name}}»: немає тексту для пояснення.",
     "offline": "Не вдалося з’єднатися з сервером.",
     "explainFailed": "Не вдалося пояснити документи."

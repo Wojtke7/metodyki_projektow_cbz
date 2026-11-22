@@ -3,29 +3,30 @@
 from app.pii import redact_pii
 
 
-def test_masks_valid_pesel_and_leaves_invalid_checksum_unchanged():
+def test_masks_valid_pesel_and_labeled_invalid_checksum():
     assert redact_pii("PESEL: 44051400006") == "PESEL: [PESEL]"
-    assert redact_pii("PESEL: 44051400007") == "PESEL: 44051400007"
+    assert redact_pii("PESEL: 44051400007") == "PESEL: [PESEL]"
+    assert redact_pii("44051400007") == "44051400007"
+    assert redact_pii("Nr PESEL: 85041200019") == "Nr PESEL: [PESEL]"
 
 
-def test_masks_nip_id_card_passport_phone_and_email():
-    text = "NIP 8567346215, dowód ABC123456, paszport AB1234567, tel. +48 501 234 567, a@firma.pl"
+def test_masks_nip_id_card_and_passport():
+    text = "NIP 8567346215, dowód ABC123456, paszport AB1234567"
 
     assert redact_pii(text) == (
-        "NIP [NIP], dowód [ID CARD], paszport [PASSPORT], "
-        "tel. [PHONE], [EMAIL]"
+        "NIP [NIP], dowód [ID CARD], paszport [PASSPORT]"
     )
 
 
-def test_masks_polish_account_number_formats_and_iban():
+def test_does_not_mask_phone_account_numbers_iban_or_email():
     account = "04000000000000000000000000"
     grouped_account = "04 0000 0000 0000 0000 0000 0000"
-
-    assert redact_pii(f"Rachunki: {account} i {grouped_account}.") == (
-        "Rachunki: [ACCOUNT] i [ACCOUNT]."
+    text = (
+        f"tel. +48 501 234 567, konto {account}, "
+        f"konto {grouped_account}, IBAN PL{account}, a@firma.pl"
     )
-    assert redact_pii(f"IBAN PL{account}") == "IBAN [IBAN]"
-    assert redact_pii("IBAN GB82 WEST 1234 5698 7654 32") == "IBAN [IBAN]"
+
+    assert redact_pii(text) == text
 
 
 def test_does_not_mask_invalid_account_numbers_amounts_or_dates():
