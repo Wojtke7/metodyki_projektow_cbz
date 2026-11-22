@@ -2,17 +2,18 @@
 
 Routes
 ------
-GET  /health   – liveness check; confirms the server is running.
-POST /explain  – accepts letter text, calls the AI service, returns explanation.
-POST /explain/file – extracts and explains a PDF, DOCX, or TXT upload.
+GET  /health       – liveness check; confirms the server is running.
+POST /explain      – accepts letter text and language, calls the AI service, returns explanation.
+POST /explain/file – extracts and explains a PDF, DOCX, or TXT upload in the chosen language.
 """
 
 from typing import Literal
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile, status
 from starlette.concurrency import run_in_threadpool
 
 from app.ai_service import explain_letter
+from app.config import settings
 from app.documents import (
     DocumentTooLargeError,
     DocumentTypeError,
@@ -21,6 +22,7 @@ from app.documents import (
     NoDocumentTextError,
     extract_document_text,
 )
+from app.rate_limiter import check_rate_limit
 from app.schemas import ExplainRequest, ExplainResponse
 
 router = APIRouter()
@@ -58,42 +60,62 @@ def health() -> dict[str, str]:
     description=(
         "Send the full text of an official letter or document. "
         "The server forwards it to the AI service (Gemini) and returns a "
-        "plain-language explanation, relevant source passages from the original "
-        "text, an action checklist, and a list of deadlines. "
+        "plain-language explanation, document type, payment info, consequences, "
+        "relevant source passages, an action checklist, and deadlines in the chosen language. "
         "**The AI key is never exposed to the client.**"
     ),
     tags=["Explanation"],
     responses={
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {
-            "description": "The request body is missing or the `text` field is empty.",
+        413: {
+            "description": "The submitted letter text exceeds the maximum allowed length.",
         },
-        status.HTTP_502_BAD_GATEWAY: {
+        422: {
+            "description": "The request body is missing, the `text` field is empty, or the language is unsupported.",
+        },
+        429: {
+            "description": "Rate limit exceeded for the client IP address.",
+        },
+        502: {
             "description": "The AI service did not respond or returned an unreadable answer.",
         },
     },
 )
-def explain(body: ExplainRequest) -> ExplainResponse:
+def explain(body: ExplainRequest, request: Request) -> ExplainResponse:
     """Explain the letter text using the AI service.
 
-    - **text**: The full text of the letter (must not be empty).
+    - **text**: The full text of the letter (max length enforced).
+    - **language**: Optional target language (pl, en, uk). Default: pl.
 
-    Returns a structured JSON object with four fields:
-    ``explanation``, ``source_passages``, ``action_checklist``, ``deadlines``.
+    Returns a structured JSON object with plain language explanation,
+    document type, action checklist, deadlines, amounts, payment info, and consequences.
     """
-    try:
-        return explain_letter(body.text)
-    except ValueError as exc:
-        # This should not normally be reached because Pydantic validates
-        # min_length=1 on the request body, but we guard it explicitly.
+    # Enforce rate limiting per client IP (US-41)
+    check_rate_limit(request)
+
+    # Enforce maximum text length limit (US-41)
+    if len(body.text) > settings.max_text_length:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=413,
+            detail=f"The submitted letter exceeds the maximum allowed length of {settings.max_text_length} characters.",
+        )
+
+    try:
+        return explain_letter(body.text, language=body.language)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
             detail=str(exc),
         ) from exc
     except RuntimeError as exc:
         raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
+            status_code=502,
             detail=str(exc),
         ) from exc
+
+
+# ---------------------------------------------------------------------------
+# POST /explain/file
+# ---------------------------------------------------------------------------
 
 
 @router.post(
@@ -106,37 +128,55 @@ def explain(body: ExplainRequest) -> ExplainResponse:
     ),
     tags=["Explanation"],
     responses={
-        status.HTTP_413_REQUEST_ENTITY_TOO_LARGE: {
+        413: {
             "description": "The upload or extracted document exceeds its size limit.",
         },
-        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE: {
+        415: {
             "description": "The file content is not a supported PDF, DOCX, or TXT document.",
         },
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {
-            "description": "No readable text could be extracted from the document.",
+        422: {
+            "description": "No readable text could be extracted from the document or language is unsupported.",
         },
-        status.HTTP_502_BAD_GATEWAY: {
+        429: {
+            "description": "Rate limit exceeded for the client IP address.",
+        },
+        502: {
             "description": "The AI service did not respond or returned an unreadable answer.",
         },
     },
 )
 async def explain_file(
+    request: Request,
     file: UploadFile = File(...),
-    language: Literal["pl", "en", "uk"] | None = Form(default=None),
+    language: str | None = Form(default=None),
 ) -> ExplainResponse:
     """Extract and explain a supported uploaded document."""
+    # Enforce rate limiting per client IP (US-41)
+    check_rate_limit(request)
+
+    # Validate language parameter if provided (US-42)
+    normalized_language = None
+    if language is not None and language.strip():
+        clean_lang = language.strip().lower()
+        if clean_lang not in ("pl", "en", "uk"):
+            raise HTTPException(
+                status_code=422,
+                detail="Unsupported response language. Allowed values: pl, en, uk.",
+            )
+        normalized_language = clean_lang
+
     try:
         content = await file.read(MAX_UPLOAD_SIZE_BYTES + 1)
         if len(content) > MAX_UPLOAD_SIZE_BYTES:
             raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                status_code=413,
                 detail=f"The uploaded file exceeds the {MAX_UPLOAD_SIZE_MB} MB size limit.",
             )
         try:
             text = await run_in_threadpool(extract_document_text, content)
         except DocumentTooLargeError as exc:
             raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                status_code=413,
                 detail=str(exc),
             ) from exc
         except DocumentTypeError as exc:
@@ -146,24 +186,31 @@ async def explain_file(
             ) from exc
         except NoDocumentTextError as exc:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=422,
                 detail=str(exc),
             ) from exc
+
+        # Also verify extracted text against maximum character limit (US-41)
+        if len(text) > settings.max_text_length:
+            raise HTTPException(
+                status_code=413,
+                detail=f"The extracted text exceeds the maximum allowed length of {settings.max_text_length} characters.",
+            )
 
         try:
             return await run_in_threadpool(
                 explain_letter,
                 text,
-                language=language,
+                language=normalized_language,
             )
         except ValueError as exc:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=422,
                 detail=str(exc),
             ) from exc
         except RuntimeError as exc:
             raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
+                status_code=502,
                 detail=str(exc),
             ) from exc
     finally:

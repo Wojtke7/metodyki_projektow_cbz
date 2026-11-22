@@ -3,13 +3,28 @@
 from io import BytesIO
 import zipfile
 
-import fitz
-from docx import Document
-from docx.blkcntnr import BlockItemContainer
-from docx.opc.exceptions import PackageNotFoundError
-from docx.table import Table
-from docx.text.paragraph import Paragraph
-from lxml.etree import XMLSyntaxError
+try:
+    import fitz
+except ImportError:
+    fitz = None
+
+try:
+    from docx import Document
+    from docx.blkcntnr import BlockItemContainer
+    from docx.opc.exceptions import PackageNotFoundError
+    from docx.table import Table
+    from docx.text.paragraph import Paragraph
+except ImportError:
+    Document = None
+    BlockItemContainer = None
+    PackageNotFoundError = Exception
+    Table = None
+    Paragraph = None
+
+try:
+    from lxml.etree import XMLSyntaxError
+except ImportError:
+    XMLSyntaxError = Exception
 
 
 class DocumentTypeError(ValueError):
@@ -50,6 +65,8 @@ def extract_document_text(data: bytes) -> str:
 
 
 def _extract_pdf_text(data: bytes) -> str:
+    if fitz is None:
+        raise DocumentTypeError("PDF parsing library (PyMuPDF) is not installed.")
     try:
         with fitz.open(stream=data, filetype="pdf") as document:
             return "\n".join(page.get_text("text") for page in document)
@@ -58,6 +75,8 @@ def _extract_pdf_text(data: bytes) -> str:
 
 
 def _extract_docx_text(data: bytes) -> str:
+    if Document is None:
+        raise DocumentTypeError("DOCX parsing library (python-docx) is not installed.")
     try:
         with zipfile.ZipFile(BytesIO(data)) as archive:
             names = set(archive.namelist())

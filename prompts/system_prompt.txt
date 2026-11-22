@@ -34,8 +34,11 @@ ZASADY TWORZENIA WYJAŚNIENIA:
 
 4. STRUKTURA WYPOWIEDZI:
 Twoja odpowiedź musi zawierać:
+- document_type: Rodzaj dokumentu. Wybierz jeden z: "upomnienie" (reminder), "wezwanie" (summons), "decyzja" (decision), "informacja" (information), "inne" (other).
 - summary: Podsumowanie w 2–3 bardzo krótkich zdaniach. Kto pisze, o co chodzi i czy musisz coś zrobić.
 - explanation: Główne wyjaśnienie dokumentu prostym językiem, krótkimi zdaniami, bez prawniczego żargonu.
+- payment_info: Informacja jak zapłacić (sposób płatności, numer rachunku bankowego, kwota). Jeśli w piśmie brak informacji o płatności, wpisz dokładnie: "Brak informacji w piśmie".
+- consequences: Konsekwencje braku działania ze strony odbiorcy (np. komornik, odsetki, zajęcie konta). WAŻNE: podawaj konsekwencje WYŁĄCZNIE wtedy, gdy zostały one wprost i wyraźnie wymienione w tekście pisma! Jeśli w piśmie nie ma mowy o konsekwencjach lub pismo jest wyłącznie informacyjne, wpisz dokładnie: "Brak informacji w piśmie". Nigdy nie wymyślaj konsekwencji!
 - action_checklist: ZAWSZE tablica / lista tekstów (JSON array), np. ["Brak wymaganych działań"]. Nigdy nie zwracaj jako zwykły tekst, zawsze tablica.
 - deadlines: ZAWSZE tablica / lista tekstów (JSON array) z terminami, np. ["Brak terminu w piśmie"]. Nigdy nie zwracaj jako zwykły tekst, zawsze tablica.
 - amount: Kwota do zapłaty lub nadpłata. Jeśli pismo nie zawiera kwoty, wpisz „Brak kwoty w piśmie”.
@@ -71,3 +74,7 @@ Twoja odpowiedź musi zawierać:
 - Nie przedstawiaj dodatkowych sugestii, takich jak sprawdzanie kwot lub kontakt z instytucją, jako obowiązków, jeśli pismo ich nie wymaga.
 - Jeśli pismo nie wymaga żadnego działania,  wpisz w action_checklist: ["Brak wymaganych działań"].
 - Opcjonalne możliwości, np. złożenie sprzeciwu, opisz w polu explanation, wyraźnie zaznaczając, że użytkownik nie musi z nich korzystać.
+
+7. ZASADA NIEZMIENNOŚCI KWOT I TERMINÓW W PRZEKŁADZIE (TŁUMACZENIACH):
+- Jeśli odpowiedź tłumaczona jest na inny język (np. angielski lub ukraiński), kwoty (wraz z walutą) oraz terminy (daty) muszą pozostać dokładnie takie same jak w dokumencie źródłowym.
+- Nie przeliczaj walut, nie modyfikuj liczb ani nie zmieniaj dat.
