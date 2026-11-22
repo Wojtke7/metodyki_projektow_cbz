@@ -6,11 +6,11 @@ Katalog zawiera zestaw 3 przykładowych pism urzędowych i bankowych służącyc
 
 ## Zestawienie pism testowych
 
-| Plik | Instytucja (Nadawca) | Temat pisma | Kwota do zapłaty | Termin (Deadline) | Status danych osobowych |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **[`01_urzad_skarbowy_upomnienie.txt`](01_urzad_skarbowy_upomnienie.txt)** | Urząd Skarbowy (I US Kraków) | Upomnienie przedegzekucyjne w podatku PIT-37 | **1 308,00 zł** | **7 dni** od dnia doręczenia | 100% fikcyjne / zanonimizowane |
-| **[`02_zus_zawiadomienie_o_niedoplacie.txt`](02_zus_zawiadomienie_o_niedoplacie.txt)** | ZUS (I Oddział Warszawa) | Zawiadomienie o niedopłacie składki zdrowotnej | **430,50 zł** | **Do 30 listopada 2026 r.** | 100% fikcyjne / zanonimizowane |
-| **[`03_bank_zmiana_regulaminu.txt`](03_bank_zmiana_regulaminu.txt)** | Bank (Fikcyjny Bank Polski S.A.) | Informacja o zmianie regulaminu i tabeli opłat | *Brak kwoty do zapłaty* | **BRAK TERMINU** (pismo wyłącznie informacyjne) | 100% fikcyjne / zanonimizowane |
+| Plik                                                                                   | Instytucja (Nadawca)             | Temat pisma                                    | Kwota do zapłaty        | Termin (Deadline)                               | Status danych osobowych        |
+| :------------------------------------------------------------------------------------- | :------------------------------- | :--------------------------------------------- | :---------------------- | :---------------------------------------------- | :----------------------------- |
+| **[`01_urzad_skarbowy_upomnienie.txt`](01_urzad_skarbowy_upomnienie.txt)**             | Urząd Skarbowy (I US Kraków)     | Upomnienie przedegzekucyjne w podatku PIT-37   | **1 308,00 zł**         | **7 dni** od dnia doręczenia                    | 100% fikcyjne / zanonimizowane |
+| **[`02_zus_zawiadomienie_o_niedoplacie.txt`](02_zus_zawiadomienie_o_niedoplacie.txt)** | ZUS (I Oddział Warszawa)         | Zawiadomienie o niedopłacie składki zdrowotnej | **430,50 zł**           | **Do 30 listopada 2026 r.**                     | 100% fikcyjne / zanonimizowane |
+| **[`03_bank_zmiana_regulaminu.txt`](03_bank_zmiana_regulaminu.txt)**                   | Bank (Fikcyjny Bank Polski S.A.) | Informacja o zmianie regulaminu i tabeli opłat | _Brak kwoty do zapłaty_ | **BRAK TERMINU** (pismo wyłącznie informacyjne) | 100% fikcyjne / zanonimizowane |
 
 ---
 
@@ -25,3 +25,10 @@ Katalog zawiera zestaw 3 przykładowych pism urzędowych i bankowych służącyc
 5. **Przetestowane w aplikacji:** Wyniki testów i wykryte uwagi zapisano w [TESTING_REPORT.md](TESTING_REPORT.md).
 6. **Scenariusz demo:** Gotowy przewodnik do akceptacji przez Product Ownera znajduje się w [DEMO_SCRIPT_PO.md](DEMO_SCRIPT_PO.md).
 
+## Ręczna ewaluacja jakości (US-48)
+
+`run_samples_evaluation.py` wysyła dziewięć fikcyjnych przypadków do działającego backendu, który korzysta z prawdziwego klucza Gemini. Sprawdza oczekiwane kwoty, terminy, brakujące informacje, cytaty źródłowe i obecność placeholderów. Dodatkowe fakty i brak ujawnienia danych zamaskowanych wymagają ręcznej oceny odpowiedzi.
+
+Pojedynczy przypadek można uruchomić przez `--sample NAZWA_PLIKU`, a adres backendu zmienić przez `--api-url` lub `PROSTEFAKTY_API_URL`.
+
+Przypadek `09_skan_wniosek_ocr.txt` jest transkrypcją tekstu fikcyjnego skanu. Ewaluacja sprawdza jakość wyjaśnienia po OCR, ale nie sprawdza odczytu obrazu; to wymaga zakończenia US-44.
