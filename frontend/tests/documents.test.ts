@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import {
   explainBackendErrorKey,
   MAX_DOCUMENT_SIZE_MB,
+  removeDocumentAt,
   TranslatedError,
   validateDocuments,
 } from "../src/lib/documents";
@@ -10,9 +11,8 @@ import i18n from "../src/translations";
 import { explainErrorMessage } from "../src/hooks/useExplainDocuments";
 
 describe("document upload validation", () => {
-  test("accepts Word, PDF, TXT, and photo files, including uppercase extensions and empty MIME types", () => {
+  test("accepts DOCX, PDF, TXT, and photo files, including uppercase extensions and empty MIME types", () => {
     const files = [
-      "pismo.doc",
       "wniosek.docx",
       "decyzja.pdf",
       "notatka.txt",
@@ -29,8 +29,10 @@ describe("document upload validation", () => {
     expect(validateDocuments(files)).toEqual({ accepted: files, errors: [] });
   });
 
-  test("rejects unsupported files, missing extensions, and disguised extensions", () => {
+  test("rejects legacy .doc, unsupported files, missing extensions, and disguised extensions", () => {
     const files = [
+      "pismo.doc",
+      "PISMO.DOC",
       "zdjęcie.gif",
       "dokument",
       "decyzja.pdf.exe",
@@ -69,7 +71,7 @@ describe("document upload validation", () => {
   });
 
   test("applies the size limit per file rather than to the whole selection", () => {
-    const files = ["pierwszy.doc", "drugi.pdf"].map(
+    const files = ["pierwszy.docx", "drugi.pdf"].map(
       (name) => new File([new Uint8Array(6 * 1024 * 1024)], name),
     );
 
@@ -123,19 +125,19 @@ describe("backend explain errors", () => {
     const messages = {
       pl: {
         unsupportedType:
-          "„scan.png”: wybierz plik DOC, DOCX, PDF, TXT, JPG, JPEG lub PNG.",
+          "„scan.png”: wybierz plik DOCX, PDF, TXT, JPG, JPEG lub PNG.",
         tooLarge: "„big.jpeg”: plik przekracza maksymalny rozmiar 10 MB.",
         noText: "„empty.pdf”: brak tekstu do wyjaśnienia.",
       },
       en: {
         unsupportedType:
-          "“scan.png”: choose a DOC, DOCX, PDF, TXT, JPG, JPEG, or PNG file.",
+          "“scan.png”: choose a DOCX, PDF, TXT, JPG, JPEG, or PNG file.",
         tooLarge: "“big.jpeg”: file exceeds the maximum size of 10 MB.",
         noText: "“empty.pdf”: no text to explain.",
       },
       uk: {
         unsupportedType:
-          "«scan.png»: виберіть файл DOC, DOCX, PDF, TXT, JPG, JPEG або PNG.",
+          "«scan.png»: виберіть файл DOCX, PDF, TXT, JPG, JPEG або PNG.",
         tooLarge: "«big.jpeg»: файл перевищує максимальний розмір 10 МБ.",
         noText: "«empty.pdf»: немає тексту для пояснення.",
       },
@@ -165,6 +167,49 @@ describe("backend explain errors", () => {
           ),
         ).toBe(messages[language].noText);
       }
+    } finally {
+      await i18n.changeLanguage("pl");
+    }
+  });
+});
+
+describe("document removal", () => {
+  test("removes the document at the given index without mutating the original list", () => {
+    const first = new File(["a"], "pierwszy.pdf");
+    const second = new File(["b"], "drugi.docx");
+    const third = new File(["c"], "trzeci.txt");
+    const original = [first, second, third];
+
+    expect(removeDocumentAt(original, 1)).toEqual([first, third]);
+    expect(removeDocumentAt(original, 0)).toEqual([second, third]);
+    expect(removeDocumentAt(original, 2)).toEqual([first, second]);
+    expect(removeDocumentAt([first], 0)).toEqual([]);
+    expect(original).toEqual([first, second, third]);
+  });
+
+  test("returns the original list unchanged when index is out of range", () => {
+    const files = [new File(["a"], "pierwszy.pdf")];
+
+    expect(removeDocumentAt(files, -1)).toBe(files);
+    expect(removeDocumentAt(files, 1)).toBe(files);
+  });
+
+  test("provides remove document label in PL, EN, and UK", async () => {
+    if (!i18n.isInitialized) await i18n.init();
+
+    try {
+      await i18n.changeLanguage("pl");
+      expect(i18n.t("document.remove", { name: "pismo.pdf" })).toBe(
+        "Usuń dokument pismo.pdf",
+      );
+      await i18n.changeLanguage("en");
+      expect(i18n.t("document.remove", { name: "pismo.pdf" })).toBe(
+        "Remove document pismo.pdf",
+      );
+      await i18n.changeLanguage("uk");
+      expect(i18n.t("document.remove", { name: "pismo.pdf" })).toBe(
+        "Видалити документ pismo.pdf",
+      );
     } finally {
       await i18n.changeLanguage("pl");
     }

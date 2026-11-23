@@ -16,6 +16,7 @@ import {
 import {
   DOCUMENT_EXTENSIONS,
   MAX_DOCUMENT_SIZE_MB,
+  removeDocumentAt,
   validateDocuments,
   type DocumentUploadError,
 } from "@/lib/documents";
@@ -64,6 +65,18 @@ export function Main() {
       setDocuments((previous) => [...previous, ...accepted]);
     }
     setUploadErrors(errors);
+  };
+
+  const removeDocument = (index: number) => {
+    if (explainDocuments.isPending) return;
+
+    const next = removeDocumentAt(documents, index);
+    if (next === documents) return;
+
+    explainDocuments.reset();
+    setUploadErrors([]);
+    setDocuments(next);
+    if (next.length === 0) setDocumentsOpen(false);
   };
 
   return (
@@ -155,6 +168,7 @@ export function Main() {
                   <DocumentAttachmentsState
                     documents={documents}
                     onAddDocuments={() => fileInputRef.current?.click()}
+                    onRemoveDocument={removeDocument}
                     errors={visibleErrors}
                     explanations={explainDocuments.data ?? []}
                     explanationStatus={explanationStatus}
@@ -185,6 +199,8 @@ export function Main() {
         errors={visibleErrors}
         onClose={closeDocuments}
         onAddDocuments={() => fileInputRef.current?.click()}
+        onRemoveDocument={removeDocument}
+        removeDisabled={explainDocuments.isPending}
       />
     </>
   );
