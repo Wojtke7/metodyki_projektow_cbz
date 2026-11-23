@@ -2,14 +2,12 @@
 """Direct Gemini API tester for ProsteFakty.
 
 Usage:
-    python3 test_gemini_direct.py [1|2|3] [pl|en|uk]
+    python3 test_gemini_direct.py [1|2|3]
 
 Examples:
-    python3 test_gemini_direct.py 1       # Urząd Skarbowy (PL)
-    python3 test_gemini_direct.py 1 en    # Urząd Skarbowy (EN)
-    python3 test_gemini_direct.py 1 uk    # Urząd Skarbowy (UK)
-    python3 test_gemini_direct.py 2       # ZUS
-    python3 test_gemini_direct.py 3       # Bank (brak terminu)
+    python3 test_gemini_direct.py 1   # Urząd Skarbowy
+    python3 test_gemini_direct.py 2   # ZUS
+    python3 test_gemini_direct.py 3   # Bank (brak terminu)
 """
 
 import json
@@ -23,40 +21,6 @@ ROOT_DIR = Path(__file__).resolve().parent
 PROMPT_FILE = ROOT_DIR / "prompts" / "system_prompt.txt"
 SAMPLES_DIR = ROOT_DIR / "samples"
 FALLBACK_MODELS = ["models/gemini-flash-lite-latest", "models/gemini-2.5-flash", "models/gemini-3.1-flash-lite"]
-
-
-def get_system_prompt_for_language(base_prompt: str, language: str) -> str:
-    lang = (language or "pl").strip().lower()
-    instructions = {
-        "pl": "Odpowiedz w języku polskim.",
-        "en": (
-            "CRITICAL INSTRUCTION: Respond entirely in English. "
-            "All fields (summary, explanation, action_checklist, document_type, payment_info, "
-            "consequences, disclaimer) MUST be written in plain English. "
-            "If no action is required, output: ['No action required']. "
-            "If no deadline is present, output: ['No deadline in the letter']. "
-            "If no amount is present, output: 'No amount in the letter'. "
-            "If payment info is absent, output: 'Missing in the letter'. "
-            "If consequences are absent, output: 'Missing in the letter'. "
-            "Do NOT use Polish anywhere in the output, EXCEPT that literal quotes in source_passages "
-            "and original amounts, currency symbols, and deadline dates must remain invariant "
-            "(do not alter amounts or dates)."
-        ),
-        "uk": (
-            "КРИТИЧНА ІНСТРУКЦІЯ: Відповідай виключно українською мовою. "
-            "Усі поля (summary, explanation, action_checklist, document_type, payment_info, "
-            "consequences, disclaimer) ОБОВ'ЯЗКОВО мають бути написані простою українською мовою. "
-            "Якщо дій не потрібно, виведи: ['Немає необхідних дій']. "
-            "Якщо термін відсутній, виведи: ['Немає терміну в листі']. "
-            "Якщо сума відсутня, виведи: 'Немає суми в листі'. "
-            "Якщо інформація про оплату відсутня, виведи: 'Немає інформації в листі'. "
-            "Якщо наслідки відсутні, виведи: 'Немає інформації в листі'. "
-            "НЕ використовуй польську мову у відповіді, за винятком того, що точні цитати в source_passages, "
-            "оригінальні суми, валюта та дати виконання мають залишатися незмінними "
-            "(не змінюй суми та дати)."
-        ),
-    }
-    return f"{base_prompt}\n\n{instructions.get(lang, instructions['pl'])}"
 
 
 def get_api_key() -> str:
@@ -165,7 +129,6 @@ def main():
         sys.exit(1)
 
     sample_arg = sys.argv[1] if len(sys.argv) > 1 else "1"
-    language_arg = sys.argv[2] if len(sys.argv) > 2 else "pl"
     letter_map = {
         "1": ("01_urzad_skarbowy_upomnienie.txt", "Urząd Skarbowy (kwota i termin)"),
         "2": ("02_zus_zawiadomienie_o_niedoplacie.txt", "ZUS (kwota i termin)"),
@@ -174,12 +137,10 @@ def main():
 
     filename, desc = letter_map.get(sample_arg, letter_map["1"])
     letter_path = SAMPLES_DIR / filename
-    base_prompt = PROMPT_FILE.read_text(encoding="utf-8")
-    prompt = get_system_prompt_for_language(base_prompt, language_arg)
+    prompt = PROMPT_FILE.read_text(encoding="utf-8")
     letter_text = letter_path.read_text(encoding="utf-8")
 
     print(f"\n📄 Pismo: {filename} ({desc})")
-    print(f"🌐 Język odpowiedzi: {language_arg.upper()}")
     print("⏳ Trwa analiza pisma przez model Gemini Flash...")
 
     try:
@@ -202,18 +163,15 @@ def main():
     print("\n" + "=" * 70)
     print("ODPOWIEDŹ Z MODELU GEMINI (PROSTY JĘZYK):")
     print("=" * 70)
-    print(f"\n🏷️  TYP DOKUMENTU:\n  {result.get('document_type', '')}")
     print(f"\n📋 PODSUMOWANIE:\n{result.get('summary', '')}")
     print(f"\n🔍 WYJAŚNIENIE:\n{result.get('explanation', '')}")
-    print(f"\n💳 INFORMACJA O PŁATNOŚCI:\n  {result.get('payment_info', '')}")
-    print(f"\n⚠️  KONSEKWENCJE BRAKU DZIAŁANIA:\n  {result.get('consequences', '')}")
     print(f"\n✅ PLAN DZIAŁANIA:")
     for step in actions:
         print(f"  • {step}")
-    print(f"\n⏰ TERMINY (INVARIANT):")
+    print(f"\n⏰ TERMINY:")
     for d in deadlines:
         print(f"  • {d}")
-    print(f"\n💰 KWOTA (INVARIANT):\n  {result.get('amount', '')}")
+    print(f"\n💰 KWOTA:\n  {result.get('amount', '')}")
     print(f"\n📄 CYTATY ŹRÓDŁOWE:")
     for quote in sources:
         print(f"  > \"{quote}\"")

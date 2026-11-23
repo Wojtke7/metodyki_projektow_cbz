@@ -1,39 +1,22 @@
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 
-import {
-  explainDocument,
-  type DocumentExplanation,
-} from "@/api/explain";
+import { explainLetter, type DocumentExplanation } from "@/api/explain";
+import { readDocumentText, TranslatedError } from "@/lib/documents";
 import i18n from "@/translations";
 
-export type ExplainFilesArgs =
-  | File[]
-  | {
-      files: File[];
-      language?: string;
-    };
-
-export type ExplainFilesResult = {
-  language: string;
-  explanations: DocumentExplanation[];
-};
-
-async function explainFiles(
-  arg: ExplainFilesArgs,
-): Promise<ExplainFilesResult> {
-  const files = Array.isArray(arg) ? arg : arg.files;
-  const targetLanguage =
-    (Array.isArray(arg) ? undefined : arg.language) ||
-    i18n.resolvedLanguage ||
-    "pl";
+async function explainFiles(files: File[]) {
   const explanations: DocumentExplanation[] = [];
 
   for (const file of files) {
-    explanations.push(await explainDocument(file, targetLanguage));
+    const text = (await readDocumentText(file)).trim();
+    if (!text) {
+      throw new TranslatedError("errors.noText", { name: file.name });
+    }
+    explanations.push(await explainLetter(text));
   }
 
-  return { language: targetLanguage, explanations };
+  return explanations;
 }
 
 export function useExplainDocuments() {
@@ -42,19 +25,11 @@ export function useExplainDocuments() {
 
 export function explainErrorMessage(error: unknown) {
   if (axios.isAxiosError(error)) {
-    const status = error.response?.status;
     const detail = error.response?.data?.detail;
     if (typeof detail === "string" && detail) return detail;
-    if (Array.isArray(detail) && detail.length > 0) {
-      const first = detail[0];
-      if (typeof first?.msg === "string") return first.msg;
-    }
-    if (status === 413) return "Dokument jest zbyt duży.";
-    if (status === 415) return "Nieobsługiwany format pliku.";
-    if (status === 429) return "Zbyt wiele zapytań. Spróbuj ponownie za chwilę.";
-    if (status === 502) return "Usługa AI jest chwilowo niedostępna. Spróbuj ponownie później.";
     if (!error.response) return i18n.t("errors.offline");
   }
+  if (error instanceof TranslatedError) return i18n.t(error.key, error.values);
   if (error instanceof Error && error.message) return error.message;
   return i18n.t("errors.explainFailed");
 }
