@@ -58,9 +58,8 @@
     "file": "PLIK"
   },
   "errors": {
-    "unsupportedType": "„{{name}}”: wybierz plik DOC, DOCX, PDF lub TXT.",
+    "unsupportedType": "„{{name}}”: wybierz plik DOCX, PDF lub TXT.",
     "tooLarge": "„{{name}}”: plik przekracza maksymalny rozmiar {{maxSize}} MB.",
-    "pdfOnly": "„{{name}}”: na razie można wyjaśnić tylko plik PDF lub TXT.",
     "noText": "„{{name}}”: brak tekstu do wyjaśnienia.",
     "offline": "Nie można połączyć się z serwerem.",
     "explainFailed": "Nie udało się wyjaśnić dokumentów."

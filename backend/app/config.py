@@ -6,13 +6,17 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Runtime settings for the ProsteFakty backend.
 
-    All values are read from environment variables.  Copy ``.env.example``
+    All values are read from environment variables. Copy ``.env.example``
     to ``.env`` at the project root and fill in real values; never commit
     ``.env``.
     """
 
     gemini_api_key: str
-    gemini_model: str = "models/gemini-flash-lite-latest"
+    gemini_model: str = "gemini-3.5-flash-lite"
+    gemini_timeout_seconds: float = 30.0
+    gemini_max_retries: int = 3
+    rate_limit_per_minute: int = 10
+    max_text_length: int = 50_000
 
     model_config = SettingsConfigDict(
         # Look for a .env file starting from the backend/ directory and
