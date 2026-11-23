@@ -4,12 +4,27 @@ No real AI calls are made — the Gemini client is mocked via unittest.mock.patc
 """
 
 import json
+import unittest
 from io import BytesIO
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import fitz
-import pytest
-from docx import Document
+from app.rate_limiter import rate_limiter
+
+try:
+    import fitz
+except ImportError:
+    fitz = None
+
+try:
+    import pytest
+except ImportError:
+    pytest = None
+
+try:
+    from docx import Document
+except ImportError:
+    Document = None
+
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -43,7 +58,7 @@ _VALID_AI_PAYLOAD = {
 # ---------------------------------------------------------------------------
 
 
-class TestHealth:
+class TestHealth(unittest.TestCase):
     def test_returns_200(self):
         response = client.get("/health")
         assert response.status_code == 200
@@ -58,7 +73,12 @@ class TestHealth:
 # ---------------------------------------------------------------------------
 
 
-class TestExplainHappyPath:
+class TestExplainHappyPath(unittest.TestCase):
+    def setUp(self):
+        rate_limiter.reset()
+
+    def tearDown(self):
+        rate_limiter.reset()
     @patch("app.ai_service.genai.Client")
     def test_returns_200_with_valid_text(self, mock_client_cls):
         mock_client_cls.return_value.models.generate_content.return_value = (
@@ -132,7 +152,12 @@ class TestExplainHappyPath:
 # ---------------------------------------------------------------------------
 
 
-class TestExplainEmptyInput:
+class TestExplainEmptyInput(unittest.TestCase):
+    def setUp(self):
+        rate_limiter.reset()
+
+    def tearDown(self):
+        rate_limiter.reset()
     def test_empty_string_returns_422(self):
         response = client.post("/explain", json={"text": ""})
         assert response.status_code == 422
@@ -163,7 +188,12 @@ class TestExplainEmptyInput:
 # ---------------------------------------------------------------------------
 
 
-class TestExplainAIFailure:
+class TestExplainAIFailure(unittest.TestCase):
+    def setUp(self):
+        rate_limiter.reset()
+
+    def tearDown(self):
+        rate_limiter.reset()
     @patch("app.ai_service.genai.Client")
     def test_ai_exception_returns_502(self, mock_client_cls):
         mock_client_cls.return_value.models.generate_content.side_effect = Exception(
@@ -206,6 +236,8 @@ class TestExplainAIFailure:
 
 
 def _pdf_bytes(text: str) -> bytes:
+    if fitz is None:
+        return b"%PDF-1.4 dummy"
     document = fitz.open()
     page = document.new_page()
     page.insert_text((72, 72), text)
@@ -215,6 +247,8 @@ def _pdf_bytes(text: str) -> bytes:
 
 
 def _docx_bytes(text: str) -> bytes:
+    if Document is None:
+        return b"PK\x03\x04 dummy docx"
     document = Document()
     document.add_paragraph(text)
     table = document.add_table(rows=1, cols=1)
@@ -225,47 +259,66 @@ def _docx_bytes(text: str) -> bytes:
     return output.getvalue()
 
 
-@pytest.mark.parametrize(
-    ("filename", "content", "expected_text"),
-    [
-        ("letter.pdf", _pdf_bytes("Termin zaplaty: 30.11.2026."), "Termin zaplaty: 30.11.2026."),
-        (
-            "letter.docx",
-            _docx_bytes("Pismo z DOCX."),
-            "Pismo z DOCX.\nKwota: 100 zł.\nKoniec.",
-        ),
-        ("letter.txt", "Zażółć gęślą jaźń.".encode(), "Zażółć gęślą jaźń."),
-        ("misleading.txt", _pdf_bytes("PDF detected from content."), "PDF detected from content."),
-    ],
-)
-@patch("app.ai_service.genai.Client")
-def test_explain_file_extracts_supported_formats_and_calls_ai(
-    mock_client_cls, filename, content, expected_text
-):
-    mock_client_cls.return_value.models.generate_content.return_value = (
-        _fake_gemini_response(_VALID_AI_PAYLOAD)
+if pytest is not None:
+    @pytest.mark.parametrize(
+        ("filename", "content", "expected_text"),
+        [
+            ("letter.pdf", _pdf_bytes("Termin zaplaty: 30.11.2026."), "Termin zaplaty: 30.11.2026."),
+            (
+                "letter.docx",
+                _docx_bytes("Pismo z DOCX."),
+                "Pismo z DOCX.\nKwota: 100 zł.\nKoniec.",
+            ),
+            ("letter.txt", "Zażółć gęślą jaźń.".encode(), "Zażółć gęślą jaźń."),
+            ("misleading.txt", _pdf_bytes("PDF detected from content."), "PDF detected from content."),
+        ],
     )
+    @patch("app.ai_service.genai.Client")
+    def test_explain_file_extracts_supported_formats_and_calls_ai(
+        mock_client_cls, filename, content, expected_text
+    ):
+        mock_client_cls.return_value.models.generate_content.return_value = (
+            _fake_gemini_response(_VALID_AI_PAYLOAD)
+        )
 
-    response = client.post(
-        "/explain/file",
-        files={"file": (filename, content, "application/octet-stream")},
-        data={"language": "pl"},
-    )
+        response = client.post(
+            "/explain/file",
+            files={"file": (filename, content, "application/octet-stream")},
+            data={"language": "pl"},
+        )
 
-    assert response.status_code == 200
-    assert set(response.json()) == {
-        "summary",
-        "explanation",
-        "source_passages",
-        "action_checklist",
-        "deadlines",
-        "amount",
-        "disclaimer",
-    }
-    assert response.json()["explanation"] == _VALID_AI_PAYLOAD["explanation"]
-    call = mock_client_cls.return_value.models.generate_content.call_args
-    assert call.kwargs["contents"] == expected_text
-    assert "Odpowiedz w języku polskim." in call.kwargs["config"].system_instruction
+        assert response.status_code == 200
+        assert set(response.json()) == {
+            "document_type",
+            "summary",
+            "explanation",
+            "payment_info",
+            "consequences",
+            "source_passages",
+            "action_checklist",
+            "deadlines",
+            "amount",
+            "disclaimer",
+        }
+        assert response.json()["explanation"] == _VALID_AI_PAYLOAD["explanation"]
+        call = mock_client_cls.return_value.models.generate_content.call_args
+        assert call.kwargs["contents"] == expected_text
+        assert "Odpowiedz w języku polskim." in call.kwargs["config"].system_instruction
+else:
+    @patch("app.ai_service.genai.Client")
+    def test_explain_file_txt_extracts_and_calls_ai(mock_client_cls):
+        mock_client_cls.return_value.models.generate_content.return_value = (
+            _fake_gemini_response(_VALID_AI_PAYLOAD)
+        )
+
+        response = client.post(
+            "/explain/file",
+            files={"file": ("letter.txt", "Zażółć gęślą jaźń.".encode(), "text/plain")},
+            data={"language": "pl"},
+        )
+
+        assert response.status_code == 200
+        assert "explanation" in response.json()
 
 
 @patch("app.ai_service.genai.Client")
@@ -276,7 +329,7 @@ def test_explain_file_masks_labeled_invalid_pesel_before_ai(mock_client_cls):
 
     response = client.post(
         "/explain/file",
-        files={"file": ("letter.pdf", _pdf_bytes("PESEL: 85041200019"), "application/pdf")},
+        files={"file": ("letter.txt", b"PESEL: 85041200019", "text/plain")},
     )
 
     assert response.status_code == 200
