@@ -19,9 +19,12 @@ class RateLimiter:
         self._lock = Lock()
 
     def get_client_ip(self, request: Request) -> str:
-        """Extract the client IP address, supporting proxy headers."""
+        """Extract the client IP address, prioritizing X-Real-IP set by reverse proxy (nginx)."""
+        real_ip = request.headers.get("X-Real-IP")
+        if real_ip and real_ip.strip():
+            return real_ip.strip()
         forwarded = request.headers.get("X-Forwarded-For")
-        if forwarded:
+        if forwarded and forwarded.strip():
             return forwarded.split(",")[0].strip()
         if request.client and request.client.host:
             return request.client.host

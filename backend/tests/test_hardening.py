@@ -93,6 +93,30 @@ class TestHardeningRateLimiting(unittest.TestCase):
         allowed_resp = client.post("/explain", json={"text": "Tekst"}, headers=headers_ip2)
         self.assertEqual(allowed_resp.status_code, 200)
 
+    @patch("app.ai_service.genai.Client")
+    def test_x_real_ip_header_from_nginx_is_prioritized(self, mock_client_cls):
+        mock_client_cls.return_value.models.generate_content.return_value = (
+            _fake_gemini_response(_FAKE_EXPLANATION)
+        )
+        limit = settings.rate_limit_per_minute
+
+        # Exhaust limit for X-Real-IP
+        headers_real_ip = {
+            "X-Real-IP": "10.0.0.50",
+            "X-Forwarded-For": "spoofed.ip.address",  # should be ignored when X-Real-IP is present
+        }
+        for _ in range(limit):
+            client.post("/explain", json={"text": "Tekst"}, headers=headers_real_ip)
+
+        # 11th request with same X-Real-IP is blocked
+        blocked_resp = client.post("/explain", json={"text": "Tekst"}, headers=headers_real_ip)
+        self.assertEqual(blocked_resp.status_code, 429)
+
+        # Different X-Real-IP is allowed
+        headers_other_real_ip = {"X-Real-IP": "10.0.0.51"}
+        allowed_resp = client.post("/explain", json={"text": "Tekst"}, headers=headers_other_real_ip)
+        self.assertEqual(allowed_resp.status_code, 200)
+
 
 class TestHardeningTextLimits(unittest.TestCase):
     """US-41: Maximum text length in ExplainRequest (HTTP 413)."""
