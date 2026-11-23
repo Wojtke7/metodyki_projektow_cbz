@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { DocumentExplanation } from "@/api/explain";
 import {
   DocumentAttachmentsState,
   type DocumentExplanationStatus,
@@ -23,8 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export function Main() {
-  const { i18n, t } = useTranslation();
-  const currentLanguage = i18n.resolvedLanguage ?? "pl";
+  const { t } = useTranslation();
   const [activeSection, setActiveSection] = useState<MainSection>("documents");
   const [documents, setDocuments] = useState<File[]>([]);
   const [documentsOpen, setDocumentsOpen] = useState(false);
@@ -36,72 +34,15 @@ export function Main() {
   const showDocumentDrawerButton =
     activeSection === "documents" && documents.length > 0;
 
-  // Cache explanations per language so switching between PL / EN / UK is instant if already loaded
-  const [explanationsByLang, setExplanationsByLang] = useState<
-    Record<string, DocumentExplanation[]>
-  >({});
-
-  const handleExplain = useCallback(
-    (lang: string) => {
-      explainDocuments.mutate(
-        { files: documents, language: lang },
-        {
-          onSuccess: ({ language, explanations }) => {
-            setExplanationsByLang((previous) => ({
-              ...previous,
-              [language]: explanations,
-            }));
-          },
-        },
-      );
-    },
-    [documents, explainDocuments],
-  );
-
-  const activeExplanations =
-    explanationsByLang[currentLanguage] ??
-    (explainDocuments.data?.language === currentLanguage
-      ? explainDocuments.data.explanations
-      : []);
-
-  const hasExplanations =
-    Object.keys(explanationsByLang).length > 0 || explainDocuments.isSuccess;
-
   const closeDocuments = useCallback(() => setDocumentsOpen(false), []);
   const explanationStatus: DocumentExplanationStatus =
     explainDocuments.isPending
       ? "loading"
-      : hasExplanations && activeExplanations.length > 0
+      : explainDocuments.isSuccess
         ? "explained"
-        : hasExplanations && !explanationsByLang[currentLanguage]
-          ? "loading"
-          : "ready";
+        : "ready";
   const isReadingState =
     activeSection === "documents" && explanationStatus === "explained";
-
-  // Re-fetch explanation automatically when user switches language in explained view
-  const previousLanguageRef = useRef(currentLanguage);
-  useEffect(() => {
-    if (previousLanguageRef.current !== currentLanguage) {
-      previousLanguageRef.current = currentLanguage;
-      if (
-        hasExplanations &&
-        documents.length > 0 &&
-        !explanationsByLang[currentLanguage] &&
-        !explainDocuments.isPending
-      ) {
-        handleExplain(currentLanguage);
-      }
-    }
-  }, [
-    currentLanguage,
-    hasExplanations,
-    documents.length,
-    explanationsByLang,
-    explainDocuments.isPending,
-    handleExplain,
-  ]);
-
   const visibleErrors = [
     ...uploadErrors.map((error) =>
       t(error.key, {
@@ -120,7 +61,6 @@ export function Main() {
     const { accepted, errors } = validateDocuments(files);
     if (accepted.length > 0) {
       explainDocuments.reset();
-      setExplanationsByLang({});
       setDocuments((previous) => [...previous, ...accepted]);
     }
     setUploadErrors(errors);
@@ -216,10 +156,10 @@ export function Main() {
                     documents={documents}
                     onAddDocuments={() => fileInputRef.current?.click()}
                     errors={visibleErrors}
-                    explanations={activeExplanations}
+                    explanations={explainDocuments.data ?? []}
                     explanationStatus={explanationStatus}
                     onExplainDocuments={() =>
-                      handleExplain(currentLanguage)
+                      explainDocuments.mutate(documents)
                     }
                   />
                 ) : (

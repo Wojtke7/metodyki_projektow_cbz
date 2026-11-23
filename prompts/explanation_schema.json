@@ -4,10 +4,6 @@
   "description": "Struktura odpowiedzi asystenta AI wyjaśniającego pismo urzędowe prostym językiem",
   "type": "object",
   "properties": {
-    "document_type": {
-      "type": "string",
-      "description": "Typ dokumentu, np. reminder, summons, decision, information, other (upomnienie, wezwanie, decyzja, pismo informacyjne, inne)."
-    },
     "summary": {
       "type": "string",
       "description": "Krótkie podsumowanie w 2-3 bardzo prostych zdaniach: nadawca, cel pisma i konieczność podjęcia działania."
@@ -15,14 +11,6 @@
     "explanation": {
       "type": "string",
       "description": "Główne wyjaśnienie dokumentu w prostym języku, krótkimi zdaniami, bez prawniczego żargonu."
-    },
-    "payment_info": {
-      "type": "string",
-      "description": "Informacja jak zapłacić: numer konta bankowego, sposób płatności, kwota lub 'Brak informacji w piśmie'."
-    },
-    "consequences": {
-      "type": "string",
-      "description": "Skutki braku podjęcia działania, WYŁĄCZNIE jeśli są podane w piśmie. Jeśli brak skutków w piśmie: 'Brak informacji w piśmie'."
     },
     "action_checklist": {
       "type": "array",
@@ -55,11 +43,8 @@
     }
   },
   "required": [
-    "document_type",
     "summary",
     "explanation",
-    "payment_info",
-    "consequences",
     "action_checklist",
     "deadlines",
     "amount",
@@ -68,3 +53,4 @@
   ],
   "additionalProperties": false
 }
+
