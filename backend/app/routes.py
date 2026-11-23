@@ -4,11 +4,23 @@ Routes
 ------
 GET  /health   – liveness check; confirms the server is running.
 POST /explain  – accepts letter text, calls the AI service, returns explanation.
+POST /explain/file – extracts and explains a PDF, DOCX, or TXT upload.
 """
 
-from fastapi import APIRouter, HTTPException, status
+from typing import Literal
+
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
+from starlette.concurrency import run_in_threadpool
 
 from app.ai_service import explain_letter
+from app.documents import (
+    DocumentTooLargeError,
+    DocumentTypeError,
+    MAX_UPLOAD_SIZE_MB,
+    MAX_UPLOAD_SIZE_BYTES,
+    NoDocumentTextError,
+    extract_document_text,
+)
 from app.schemas import ExplainRequest, ExplainResponse
 
 router = APIRouter()
@@ -82,3 +94,77 @@ def explain(body: ExplainRequest) -> ExplainResponse:
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=str(exc),
         ) from exc
+
+
+@router.post(
+    "/explain/file",
+    response_model=ExplainResponse,
+    summary="Explain an uploaded document",
+    description=(
+        "Upload a PDF, DOCX, or TXT document as `file`. The server extracts its "
+        "text temporarily and returns the same explanation as `POST /explain`."
+    ),
+    tags=["Explanation"],
+    responses={
+        status.HTTP_413_REQUEST_ENTITY_TOO_LARGE: {
+            "description": "The upload or extracted document exceeds its size limit.",
+        },
+        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE: {
+            "description": "The file content is not a supported PDF, DOCX, or TXT document.",
+        },
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {
+            "description": "No readable text could be extracted from the document.",
+        },
+        status.HTTP_502_BAD_GATEWAY: {
+            "description": "The AI service did not respond or returned an unreadable answer.",
+        },
+    },
+)
+async def explain_file(
+    file: UploadFile = File(...),
+    language: Literal["pl", "en", "uk"] | None = Form(default=None),
+) -> ExplainResponse:
+    """Extract and explain a supported uploaded document."""
+    try:
+        content = await file.read(MAX_UPLOAD_SIZE_BYTES + 1)
+        if len(content) > MAX_UPLOAD_SIZE_BYTES:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"The uploaded file exceeds the {MAX_UPLOAD_SIZE_MB} MB size limit.",
+            )
+        try:
+            text = await run_in_threadpool(extract_document_text, content)
+        except DocumentTooLargeError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=str(exc),
+            ) from exc
+        except DocumentTypeError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                detail=str(exc),
+            ) from exc
+        except NoDocumentTextError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=str(exc),
+            ) from exc
+
+        try:
+            return await run_in_threadpool(
+                explain_letter,
+                text,
+                language=language,
+            )
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=str(exc),
+            ) from exc
+        except RuntimeError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=str(exc),
+            ) from exc
+    finally:
+        await file.close()

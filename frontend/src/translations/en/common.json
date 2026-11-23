@@ -58,9 +58,8 @@
     "file": "FILE"
   },
   "errors": {
-    "unsupportedType": "“{{name}}”: choose a DOC, DOCX, PDF, or TXT file.",
+    "unsupportedType": "“{{name}}”: choose a DOCX, PDF, or TXT file.",
     "tooLarge": "“{{name}}”: file exceeds the maximum size of {{maxSize}} MB.",
-    "pdfOnly": "“{{name}}”: only a PDF or TXT file can be explained for now.",
     "noText": "“{{name}}”: no text to explain.",
     "offline": "Cannot connect to the server.",
     "explainFailed": "Could not explain the documents."
