@@ -50,7 +50,14 @@
     "send": "Send question",
     "actions": "What to do",
     "deadlines": "Deadlines",
-    "passages": "Passages from the letter"
+    "passages": "Passages from the letter",
+    "keyFacts": "Key facts",
+    "summary": "Summary",
+    "deadline": "Deadline",
+    "amount": "Amount",
+    "missingInLetter": "Missing in the letter",
+    "disclaimerTitle": "Important notice",
+    "disclaimer": "This explanation is for informational purposes only and is not legal advice. If in doubt, contact the sender of the letter."
   },
   "document": {
     "label": "Document {{number}}: {{name}}",
