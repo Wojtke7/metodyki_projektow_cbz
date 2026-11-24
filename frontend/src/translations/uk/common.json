@@ -50,15 +50,23 @@
     "send": "Надіслати запитання",
     "actions": "Що зробити",
     "deadlines": "Терміни",
-    "passages": "Фрагменти з листа"
+    "passages": "Фрагменти з листа",
+    "keyFacts": "Головні факти",
+    "summary": "Підсумок",
+    "deadline": "Термін",
+    "amount": "Сума",
+    "missingInLetter": "Немає в листі",
+    "disclaimerTitle": "Важлива інформація",
+    "disclaimer": "Це пояснення має лише інформаційний характер і не є юридичною порадою. У разі сумнівів зверніться до відправника листа."
   },
   "document": {
     "label": "Документ {{number}}: {{name}}",
     "preview": "Перегляд документа {{number}}",
+    "remove": "Видалити документ {{name}}",
     "file": "ФАЙЛ"
   },
   "errors": {
-    "unsupportedType": "«{{name}}»: виберіть файл DOCX, PDF або TXT.",
+    "unsupportedType": "«{{name}}»: виберіть файл DOCX, PDF, TXT, JPG, JPEG або PNG.",
     "tooLarge": "«{{name}}»: файл перевищує максимальний розмір {{maxSize}} МБ.",
     "noText": "«{{name}}»: немає тексту для пояснення.",
     "offline": "Не вдалося з’єднатися з сервером.",

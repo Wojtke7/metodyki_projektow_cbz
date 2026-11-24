@@ -50,15 +50,23 @@
     "send": "Send question",
     "actions": "What to do",
     "deadlines": "Deadlines",
-    "passages": "Passages from the letter"
+    "passages": "Passages from the letter",
+    "keyFacts": "Key facts",
+    "summary": "Summary",
+    "deadline": "Deadline",
+    "amount": "Amount",
+    "missingInLetter": "Missing in the letter",
+    "disclaimerTitle": "Important notice",
+    "disclaimer": "This explanation is for informational purposes only and is not legal advice. If in doubt, contact the sender of the letter."
   },
   "document": {
     "label": "Document {{number}}: {{name}}",
     "preview": "Preview of document {{number}}",
+    "remove": "Remove document {{name}}",
     "file": "FILE"
   },
   "errors": {
-    "unsupportedType": "“{{name}}”: choose a DOCX, PDF, or TXT file.",
+    "unsupportedType": "“{{name}}”: choose a DOCX, PDF, TXT, JPG, JPEG, or PNG file.",
     "tooLarge": "“{{name}}”: file exceeds the maximum size of {{maxSize}} MB.",
     "noText": "“{{name}}”: no text to explain.",
     "offline": "Cannot connect to the server.",

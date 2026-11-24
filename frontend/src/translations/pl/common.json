@@ -50,15 +50,23 @@
     "send": "Wyślij pytanie",
     "actions": "Co zrobić",
     "deadlines": "Terminy",
-    "passages": "Fragmenty z pisma"
+    "passages": "Fragmenty z pisma",
+    "keyFacts": "Najważniejsze fakty",
+    "summary": "Podsumowanie",
+    "deadline": "Termin",
+    "amount": "Kwota",
+    "missingInLetter": "Brak w piśmie",
+    "disclaimerTitle": "Ważna informacja",
+    "disclaimer": "To wyjaśnienie ma charakter wyłącznie informacyjny i nie jest poradą prawną. W razie wątpliwości skontaktuj się z nadawcą pisma."
   },
   "document": {
     "label": "Dokument {{number}}: {{name}}",
     "preview": "Podgląd dokumentu {{number}}",
+    "remove": "Usuń dokument {{name}}",
     "file": "PLIK"
   },
   "errors": {
-    "unsupportedType": "„{{name}}”: wybierz plik DOCX, PDF lub TXT.",
+    "unsupportedType": "„{{name}}”: wybierz plik DOCX, PDF, TXT, JPG, JPEG lub PNG.",
     "tooLarge": "„{{name}}”: plik przekracza maksymalny rozmiar {{maxSize}} MB.",
     "noText": "„{{name}}”: brak tekstu do wyjaśnienia.",
     "offline": "Nie można połączyć się z serwerem.",

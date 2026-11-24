@@ -1,27 +1,39 @@
 import { describe, expect, test } from "bun:test";
 
 import {
+  explainBackendErrorKey,
   MAX_DOCUMENT_SIZE_MB,
+  removeDocumentAt,
+  TranslatedError,
   validateDocuments,
 } from "../src/lib/documents";
+import i18n from "../src/translations";
+import { explainErrorMessage } from "../src/hooks/useExplainDocuments";
 
 describe("document upload validation", () => {
-  test("accepts DOCX, PDF, and TXT files, including uppercase extensions", () => {
+  test("accepts DOCX, PDF, TXT, and photo files, including uppercase extensions and empty MIME types", () => {
     const files = [
       "wniosek.docx",
       "decyzja.pdf",
       "notatka.txt",
+      "skan.jpg",
+      "zdjęcie.jpeg",
+      "paragon.png",
       "PISMO.DOCX",
       "DECYZJA.PDF",
       "NOTATKA.TXT",
+      "FAKTURA.JPEG",
+      "SKAN.PNG",
     ].map((name) => new File(["document"], name));
 
     expect(validateDocuments(files)).toEqual({ accepted: files, errors: [] });
   });
 
-  test("rejects unsupported files, missing extensions, and disguised extensions", () => {
+  test("rejects legacy .doc, unsupported files, missing extensions, and disguised extensions", () => {
     const files = [
-      "zdjęcie.png",
+      "pismo.doc",
+      "PISMO.DOC",
+      "zdjęcie.gif",
       "dokument",
       "decyzja.pdf.exe",
       "notatka.txt.exe",
@@ -44,7 +56,7 @@ describe("document upload validation", () => {
     );
     const overLimit = new File(
       [new Uint8Array(10 * 1024 * 1024 + 1)],
-      "za-duży.pdf",
+      "za-duży.jpeg",
     );
     const result = validateDocuments([atLimit, overLimit]);
 
@@ -52,7 +64,7 @@ describe("document upload validation", () => {
     expect(result.errors).toEqual([
       {
         key: "errors.tooLarge",
-        name: "za-duży.pdf",
+        name: "za-duży.jpeg",
         maxSize: MAX_DOCUMENT_SIZE_MB,
       },
     ]);
@@ -76,17 +88,138 @@ describe("document upload validation", () => {
 
   test("keeps valid files in order when a selection also contains invalid files", () => {
     const first = new File(["document"], "pierwszy.docx");
-    const invalid = new File(["image"], "zdjęcie.jpg");
+    const invalid = new File(["image"], "zdjęcie.gif");
     const second = new File(["document"], "drugi.pdf");
     const result = validateDocuments([first, invalid, second]);
 
     expect(result.accepted).toEqual([first, second]);
     expect(result.errors).toEqual([
-      { key: "errors.unsupportedType", name: "zdjęcie.jpg" },
+      { key: "errors.unsupportedType", name: "zdjęcie.gif" },
     ]);
   });
 
   test("handles an empty selection without errors", () => {
     expect(validateDocuments([])).toEqual({ accepted: [], errors: [] });
+  });
+});
+
+describe("backend explain errors", () => {
+  test("maps wrong type, file too big, and no text from status or detail", () => {
+    expect(explainBackendErrorKey(415, "<html>unsupported</html>")).toBe(
+      "errors.unsupportedType",
+    );
+    expect(explainBackendErrorKey(400, { detail: "wrong type" })).toBe(
+      "errors.unsupportedType",
+    );
+    expect(explainBackendErrorKey(413, { detail: "payload" })).toBe(
+      "errors.tooLarge",
+    );
+    expect(explainBackendErrorKey(400, { error: "file-too-large" })).toBe(
+      "errors.tooLarge",
+    );
+    expect(explainBackendErrorKey(422, { detail: { code: "no_text" } })).toBe(
+      "errors.noText",
+    );
+    expect(explainBackendErrorKey(422, "No text.")).toBe("errors.noText");
+    expect(
+      explainBackendErrorKey(422, { detail: [{ msg: "Field required" }] }),
+    ).toBeNull();
+    expect(
+      explainBackendErrorKey(500, { detail: "The AI service failed." }),
+    ).toBeNull();
+  });
+
+  test("shows wrong type, file too big, and no text in PL, EN, and UK", async () => {
+    const messages = {
+      pl: {
+        unsupportedType:
+          "„scan.png”: wybierz plik DOCX, PDF, TXT, JPG, JPEG lub PNG.",
+        tooLarge: "„big.jpeg”: plik przekracza maksymalny rozmiar 10 MB.",
+        noText: "„empty.pdf”: brak tekstu do wyjaśnienia.",
+      },
+      en: {
+        unsupportedType:
+          "“scan.png”: choose a DOCX, PDF, TXT, JPG, JPEG, or PNG file.",
+        tooLarge: "“big.jpeg”: file exceeds the maximum size of 10 MB.",
+        noText: "“empty.pdf”: no text to explain.",
+      },
+      uk: {
+        unsupportedType:
+          "«scan.png»: виберіть файл DOCX, PDF, TXT, JPG, JPEG або PNG.",
+        tooLarge: "«big.jpeg»: файл перевищує максимальний розмір 10 МБ.",
+        noText: "«empty.pdf»: немає тексту для пояснення.",
+      },
+    } as const;
+
+    if (!i18n.isInitialized) await i18n.init();
+
+    try {
+      for (const language of ["pl", "en", "uk"] as const) {
+        await i18n.changeLanguage(language);
+        expect(
+          explainErrorMessage(
+            new TranslatedError("errors.unsupportedType", { name: "scan.png" }),
+          ),
+        ).toBe(messages[language].unsupportedType);
+        expect(
+          explainErrorMessage(
+            new TranslatedError("errors.tooLarge", {
+              name: "big.jpeg",
+              maxSize: MAX_DOCUMENT_SIZE_MB,
+            }),
+          ),
+        ).toBe(messages[language].tooLarge);
+        expect(
+          explainErrorMessage(
+            new TranslatedError("errors.noText", { name: "empty.pdf" }),
+          ),
+        ).toBe(messages[language].noText);
+      }
+    } finally {
+      await i18n.changeLanguage("pl");
+    }
+  });
+});
+
+describe("document removal", () => {
+  test("removes the document at the given index without mutating the original list", () => {
+    const first = new File(["a"], "pierwszy.pdf");
+    const second = new File(["b"], "drugi.docx");
+    const third = new File(["c"], "trzeci.txt");
+    const original = [first, second, third];
+
+    expect(removeDocumentAt(original, 1)).toEqual([first, third]);
+    expect(removeDocumentAt(original, 0)).toEqual([second, third]);
+    expect(removeDocumentAt(original, 2)).toEqual([first, second]);
+    expect(removeDocumentAt([first], 0)).toEqual([]);
+    expect(original).toEqual([first, second, third]);
+  });
+
+  test("returns the original list unchanged when index is out of range", () => {
+    const files = [new File(["a"], "pierwszy.pdf")];
+
+    expect(removeDocumentAt(files, -1)).toBe(files);
+    expect(removeDocumentAt(files, 1)).toBe(files);
+  });
+
+  test("provides remove document label in PL, EN, and UK", async () => {
+    if (!i18n.isInitialized) await i18n.init();
+
+    try {
+      await i18n.changeLanguage("pl");
+      expect(i18n.t("document.remove", { name: "pismo.pdf" })).toBe(
+        "Usuń dokument pismo.pdf",
+      );
+      await i18n.changeLanguage("en");
+      expect(i18n.t("document.remove", { name: "pismo.pdf" })).toBe(
+        "Remove document pismo.pdf",
+      );
+      await i18n.changeLanguage("uk");
+      expect(i18n.t("document.remove", { name: "pismo.pdf" })).toBe(
+        "Видалити документ pismo.pdf",
+      );
+    } finally {
+      await i18n.changeLanguage("pl");
+    }
   });
 });

@@ -1,4 +1,5 @@
 import { apiRequest } from "@/api/axios";
+import type { Language } from "@/translations";
 
 export type DocumentExplanation = {
   summary: string;
@@ -10,8 +11,11 @@ export type DocumentExplanation = {
   disclaimer: string;
 };
 
-export function explainLetter(text: string) {
-  return apiRequest<DocumentExplanation>("POST", "/explain", { text });
+export function explainFile(file: File, language?: Language) {
+  const body = new FormData();
+  body.append("file", file);
+  if (language) body.append("language", language);
+  return apiRequest<DocumentExplanation>("POST", "/explain/file", body);
 }
 
 export function explainDocument(file: File, language?: string) {
