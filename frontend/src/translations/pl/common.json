@@ -54,6 +54,8 @@
     "keyFacts": "Najważniejsze fakty",
     "summary": "Podsumowanie",
     "deadline": "Termin",
+    "downloadReminder": "Pobierz przypomnienie",
+    "downloadReminderFor": "Pobierz przypomnienie kalendarza dla {{deadline}}",
     "amount": "Kwota",
     "missingInLetter": "Brak w piśmie",
     "disclaimerTitle": "Ważna informacja",

@@ -63,6 +63,8 @@ describe("key facts and disclaimer translations", () => {
       "explain.keyFacts",
       "explain.summary",
       "explain.deadline",
+      "explain.downloadReminder",
+      "explain.downloadReminderFor",
       "explain.amount",
       "explain.missingInLetter",
       "explain.disclaimerTitle",

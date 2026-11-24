@@ -1,10 +1,11 @@
-import { ArrowUp, Banknote, Calendar, Info } from "lucide-react";
+import { ArrowUp, Banknote, Calendar, Download, Info } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import type { DocumentExplanation } from "@/api/explain";
 import { DocumentAttachmentPreview } from "@/components/DocumentAttachmentPreview";
 import { DocumentCard } from "@/components/DocumentCard";
 import { Button } from "@/components/ui/button";
+import { downloadDeadlineCalendar, parseDeadlineDate } from "@/lib/calendar";
 import { extractKeyFacts } from "@/lib/explanation";
 import { cn } from "@/lib/utils";
 
@@ -158,13 +159,33 @@ function ExplanationKeyFacts({
           >
             {deadlines.length === 0 ? (
               missingLabel
-            ) : deadlines.length === 1 ? (
-              deadlines[0]
             ) : (
-              <ul className="space-y-1">
-                {deadlines.map((deadline, index) => (
-                  <li key={index}>{deadline}</li>
-                ))}
+              <ul className="space-y-2">
+                {deadlines.map((deadline, index) => {
+                  const hasDate = parseDeadlineDate(deadline) !== null;
+                  return (
+                    <li
+                      key={index}
+                      className="flex flex-wrap items-center gap-x-2 gap-y-1"
+                    >
+                      <span>{deadline}</span>
+                      {hasDate && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          aria-label={t("explain.downloadReminderFor", {
+                            deadline,
+                          })}
+                          onClick={() => downloadDeadlineCalendar(deadline)}
+                        >
+                          <Download aria-hidden="true" />
+                          {t("explain.downloadReminder")}
+                        </Button>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </dd>
