@@ -54,6 +54,8 @@
     "keyFacts": "Key facts",
     "summary": "Summary",
     "deadline": "Deadline",
+    "downloadReminder": "Download reminder",
+    "downloadReminderFor": "Download a calendar reminder for {{deadline}}",
     "amount": "Amount",
     "missingInLetter": "Missing in the letter",
     "disclaimerTitle": "Important notice",

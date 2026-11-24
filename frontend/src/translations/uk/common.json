@@ -54,6 +54,8 @@
     "keyFacts": "Головні факти",
     "summary": "Підсумок",
     "deadline": "Термін",
+    "downloadReminder": "Завантажити нагадування",
+    "downloadReminderFor": "Завантажити нагадування в календар для {{deadline}}",
     "amount": "Сума",
     "missingInLetter": "Немає в листі",
     "disclaimerTitle": "Важлива інформація",
