@@ -13,7 +13,6 @@ from presidio_analyzer.predefined_recognizers.generic import (
     CryptoRecognizer,
     IpRecognizer,
     MacAddressRecognizer,
-    UrlRecognizer,
 )
 from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
@@ -33,7 +32,6 @@ _PLACEHOLDERS = {
     "IP_ADDRESS": "[IP ADDRESS]",
     "MAC_ADDRESS": "[MAC ADDRESS]",
     "CRYPTO": "[CRYPTO]",
-    "URL": "[URL]",
 }
 
 
@@ -117,7 +115,6 @@ def _create_analyzer() -> AnalyzerEngine:
         IpRecognizer(supported_language="pl"),
         MacAddressRecognizer(supported_language="pl"),
         CryptoRecognizer(supported_language="pl"),
-        UrlRecognizer(supported_language="pl"),
     ]
     registry = RecognizerRegistry(recognizers=recognizers, supported_languages=["pl"])
     nlp_engine = NoOpNlpEngine(models=[{"lang_code": "pl", "model_name": "no_op"}])
@@ -164,15 +161,6 @@ def redact_pii(text: str) -> str:
         entities=list(_PLACEHOLDERS),
         language="pl",
     )
-    results = [
-        result
-        for result in results
-        if not (
-            result.entity_type == "URL"
-            and result.start > 0
-            and text[result.start - 1] == "@"
-        )
-    ]
     return _ANONYMIZER.anonymize(
         text=text,
         analyzer_results=results,

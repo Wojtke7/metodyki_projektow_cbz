@@ -111,7 +111,7 @@ pytest tests/
 ## Security notes
 
 - `GEMINI_API_KEY` is read **only** from the server-side environment.  It is never placed in source code, returned in any response, or sent to the browser.
-- Presidio detects and replaces supported personal identifiers locally before text is sent to Gemini. The configured recognizers cover Polish identifiers plus credit cards, IP/MAC addresses, cryptocurrency addresses and URLs. They use regex and checksum validation without loading an NLP model.
+- Presidio detects and replaces supported personal identifiers locally before text is sent to Gemini. The configured recognizers cover Polish identifiers plus credit cards, IP/MAC addresses and cryptocurrency addresses. They use regex and checksum validation without loading an NLP model.
 - The `.env` file is listed in `.gitignore` and must never be committed.
 - Empty or invalid `text` returns a `422 Unprocessable Entity` with a clear error message.
 - If the AI service fails or returns an unreadable answer, the server returns `502 Bad Gateway` with a clear message.

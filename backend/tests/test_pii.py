@@ -38,11 +38,15 @@ def test_does_not_mask_invalid_account_numbers_amounts_or_dates():
 def test_masks_additional_presidio_entities():
     text = (
         "Karta 4111111111111111, IP 192.168.1.10, "
-        "MAC 00:1A:2B:3C:4D:5E, portfel 1BoatSLRHtKNngkdXEeobR76b53LETtpyT, "
-        "strona https://example.com."
+        "MAC 00:1A:2B:3C:4D:5E, portfel 1BoatSLRHtKNngkdXEeobR76b53LETtpyT."
     )
 
     assert redact_pii(text) == (
         "Karta [CREDIT CARD], IP [IP ADDRESS], "
-        "MAC [MAC ADDRESS], portfel [CRYPTO], strona [URL]."
+        "MAC [MAC ADDRESS], portfel [CRYPTO]."
     )
+
+
+def test_does_not_mask_urls():
+    text = "Więcej informacji na stronie https://example.com/info oraz www.gov.pl."
+    assert redact_pii(text) == text
