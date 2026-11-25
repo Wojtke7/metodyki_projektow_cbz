@@ -67,9 +67,13 @@ jobs:
         run: ssh -i ~/.ssh/id_deploy "$SSH_USER@$HOST" 'bash /opt/prostefakty/deploy/deploy.sh'
 
       - name: Health check
+        env:
+          # The site is served over HTTPS under a domain name. Requests to the bare IP
+          # address hit the nginx catch-all block and always return 404.
+          APP_URL: ${{ vars.APP_URL || 'https://prostefakty.duckdns.org' }}
         run: |
           for i in 1 2 3 4 5 6 7 8 9 10; do
-            if curl -fsS "http://$HOST/health"; then exit 0; fi
+            if curl -fsSL --max-time 10 "$APP_URL/health"; then exit 0; fi
             sleep 3
           done
           echo "Health check failed" >&2
