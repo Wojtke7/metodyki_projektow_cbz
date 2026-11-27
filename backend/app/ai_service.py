@@ -14,6 +14,7 @@ import google.genai.types as types
 from pydantic import BaseModel, field_validator
 
 from app.config import settings
+from app.pii import redact_pii
 from app.schemas import ExplainResponse
 
 logger = logging.getLogger(__name__)
@@ -57,7 +58,7 @@ class _GeminiExplanation(BaseModel):
         return v
 
 
-def explain_letter(text: str) -> ExplainResponse:
+def explain_letter(text: str, language: str | None = None) -> ExplainResponse:
     """Send *text* to the Gemini API and return a structured ExplainResponse.
 
     Raises:
@@ -67,14 +68,16 @@ def explain_letter(text: str) -> ExplainResponse:
     if not text or not text.strip():
         raise ValueError("Letter text must not be empty.")
 
+    text = redact_pii(text)
     client = genai.Client(api_key=settings.gemini_api_key)
+    system_instruction = _system_instruction_for_language(language)
 
     try:
         response = client.models.generate_content(
             model=settings.gemini_model,
             contents=text,
             config=types.GenerateContentConfig(
-                system_instruction=get_system_instruction(),
+                system_instruction=system_instruction,
                 response_mime_type="application/json",
                 response_schema=_GeminiExplanation,
             ),
@@ -102,3 +105,13 @@ def explain_letter(text: str) -> ExplainResponse:
         amount=data.amount,
         disclaimer=data.disclaimer,
     )
+
+
+def _system_instruction_for_language(language: str | None) -> str:
+    instruction = get_system_instruction()
+    language_names = {"pl": "polskim", "en": "angielskim", "uk": "ukraińskim"}
+    if language is not None:
+        if language not in language_names:
+            raise ValueError("Unsupported response language.")
+        instruction += f"\nOdpowiedz w języku {language_names[language]}."
+    return instruction

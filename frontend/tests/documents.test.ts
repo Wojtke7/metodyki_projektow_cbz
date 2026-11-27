@@ -70,6 +70,14 @@ describe("document upload validation", () => {
     ]);
   });
 
+  test("rejects legacy DOC files", () => {
+    const file = new File(["document"], "pismo.doc");
+    expect(validateDocuments([file])).toEqual({
+      accepted: [],
+      errors: [{ key: "errors.unsupportedType", name: file.name }],
+    });
+  });
+
   test("applies the size limit per file rather than to the whole selection", () => {
     const files = ["pierwszy.docx", "drugi.pdf"].map(
       (name) => new File([new Uint8Array(6 * 1024 * 1024)], name),

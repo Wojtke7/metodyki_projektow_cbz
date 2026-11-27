@@ -11,9 +11,11 @@ backend/
 ├── app/
 │   ├── __init__.py
 │   ├── main.py        # FastAPI application, CORS, router registration
-│   ├── routes.py      # GET /health  and  POST /explain
+│   ├── routes.py      # GET /health, POST /explain, and POST /explain/file
+│   ├── documents.py   # Temporary PDF, DOCX, and TXT text extraction
 │   ├── schemas.py     # Pydantic request / response models
-│   ├── ai_service.py  # Gemini API client (key loaded from env, never from code)
+│   ├── ai_service.py  # Gemini API client and PII masking entry point
+│   ├── pii.py         # Local Presidio detection and anonymization
 │   └── config.py      # Settings read from environment variables / .env
 └── requirements.txt
 ```
@@ -23,7 +25,14 @@ backend/
 | Method | Path       | Description                                              |
 |--------|------------|----------------------------------------------------------|
 | GET    | `/health`  | Returns `{"status": "ok"}` — confirms the server is up. |
-| POST   | `/explain` | Accepts `{"text": "…"}`, returns structured explanation. |
+| POST   | `/explain` | Accepts `{"text": "…"}` for pasted text. |
+| POST   | `/explain/file` | Accepts a multipart `file` and optional `language`; returns the same structured explanation. |
+
+File uploads are limited to 10 MB and detected from their content, not their
+filename or declared MIME type. Supported types are PDF, DOCX, and UTF-8 TXT.
+Uploaded files are processed temporarily and are not stored permanently. The
+file endpoint returns `413` for an oversized upload, `415` for an unsupported
+file, and `422` when no readable text can be extracted.
 
 Full interactive documentation is available at **`/docs`** (Swagger UI) and **`/redoc`** (ReDoc) when the server is running.
 
@@ -33,6 +42,14 @@ Full interactive documentation is available at **`/docs`** (Swagger UI) and **`/
 curl -X POST http://localhost:8000/explain \
      -H "Content-Type: application/json" \
      -d '{"text": "Szanowny Panie, wzywamy Pana do zapłaty kwoty 1200 zł do dnia 30.11.2024."}'
+```
+
+For a document upload:
+
+```bash
+curl -X POST http://localhost:8000/explain/file \
+     -F "file=@pismo.pdf" \
+     -F "language=pl"
 ```
 
 ### Example response
@@ -86,7 +103,7 @@ The API will be available at `http://127.0.0.1:8000`.
 Tests use mocks — no real Gemini API calls are made in CI or locally.
 
 ```bash
-# From the project root:
+# From the backend/ directory:
 pip install pytest httpx
 pytest tests/
 ```
@@ -94,6 +111,7 @@ pytest tests/
 ## Security notes
 
 - `GEMINI_API_KEY` is read **only** from the server-side environment.  It is never placed in source code, returned in any response, or sent to the browser.
+- Presidio detects and replaces supported personal identifiers locally before text is sent to Gemini. The configured recognizers cover Polish identifiers plus credit cards, IP/MAC addresses and cryptocurrency addresses. They use regex and checksum validation without loading an NLP model.
 - The `.env` file is listed in `.gitignore` and must never be committed.
 - Empty or invalid `text` returns a `422 Unprocessable Entity` with a clear error message.
 - If the AI service fails or returns an unreadable answer, the server returns `502 Bad Gateway` with a clear message.
